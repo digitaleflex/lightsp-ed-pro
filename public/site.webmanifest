@@ -1,0 +1,20 @@
+{
+  "name": "Lightspeed — Surveillance de performance web",
+  "short_name": "Lightspeed",
+  "description": "Surveillez et optimisez les performances de vos pages web. Core Web Vitals, Lighthouse, monitoring continu.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafffe",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "developer", "business"],
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

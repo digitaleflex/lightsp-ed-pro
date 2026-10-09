@@ -753,3 +753,74 @@ Risques / Prochaines étapes recommandées :
 - Graphique de corrélation entre métriques
 - Alertes Slack/Discord en temps réel
 - Rapport de régression automatique après déploiement
+
+---
+Task ID: cron-9
+Agent: Main (Z.ai Code) — Revue webDev programmée (cron 15min)
+Task: QA + ajout de partage social, tour guidé et support PWA
+
+Work Log:
+- Lecture du worklog précédent : projet stable après cron-8 (20 sections, benchmark, tips)
+- QA : serveur HTTP 200, lint 0 erreur, aucune erreur runtime
+- 20 sections sur la page (inchangé — nouvelles fonctionnalités intégrées dans l'existant)
+
+Nouvelles fonctionnalités ajoutées :
+1. **Boutons de partage social** (social-share.tsx) :
+   - 4 options : Twitter, LinkedIn, Email, Copier le lien
+   - Liens pré-remplis avec le résumé du rapport (URL, score, LCP, CLS)
+   - Bouton copier avec état "copié" (icône Check pendant 2s) + toast
+   - Couleurs au survol par réseau social
+   - Remplace l'ancien bouton "Partager" dans l'en-tête des résultats
+   - DOM vérifié : liens Twitter/LinkedIn/Email + bouton Copier ✅
+
+2. **Tour guidé interactif** (guided-tour.tsx) :
+   - Overlay avec spotlight (clip-path) autour de l'élément cible
+   - 5 étapes : Tester un site → Dashboard → Classement → Tarifs → Glossaire
+   - Démarrage auto après 2.5s pour les nouveaux visiteurs (localStorage)
+   - Navigation : Précédent/Suivant + dots + compteur "Étape X / 5"
+   - Bouton fermer (X) + bouton "Terminer" à la dernière étape
+   - Suivi de la position cible au scroll/resize
+   - Carte tooltip avec glassmorphism (9/10 VLM)
+   - DOM vérifié : "Étape 1 / 5", "Testez votre site", "Suivant" ✅
+
+3. **Support PWA** (site.webmanifest + layout.tsx) :
+   - Manifest JSON complet (name, short_name, description, theme_color, icons)
+   - Meta tags : manifest, appleWebApp, openGraph (locale fr_FR), twitter card
+   - Site installable comme app (standalone display)
+   - Couleur de thème #10b981 (vert émeraude)
+   - Manifest accessible : HTTP 200 ✅
+
+Améliorations de style :
+- Layout : meta tags enrichis (appleWebApp, twitter, openGraph locale)
+- Speed test : en-tête des résultats avec SocialShare + Exporter + Relancer
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200, aucune erreur runtime
+- ✅ Manifest PWA : HTTP 200, link rel=manifest présent (DOM)
+- ✅ Tour guidé : "Étape 1 / 5" + "Suivant" (DOM + VLM 9/10)
+- ✅ Partage social : Twitter/LinkedIn/Email/Copier (DOM)
+- ✅ 20 sections rendues
+
+Stage Summary:
+- 3 nouvelles fonctionnalités (partage social, tour guidé, PWA manifest)
+- Meta tags enrichis (appleWebApp, twitter, openGraph)
+- 20 sections, toutes fonctionnelles
+- Toutes vérifications QA passent : lint 0, serveur 200, manifest 200, DOM confirme
+
+Risques / Prochaines étapes recommandées :
+- Export PDF des rapports (skill pdf)
+- Page de connexion authentifiée (NextAuth) avec dashboard personnel
+- Webhooks réels (déploiement Vercel/GitHub)
+- Notifications email d'alerte (résend)
+- API publique pour CI/CD
+- Page de statut dédiée (/status) avec historique des incidents
+- Comparaison multi-sites (jusqu'à 4 en parallèle)
+- Mode hors-ligne (PWA service worker pour cache)
+- Heatmap des Core Web Vitals par région
+- Timeline des incidents avec annotations
+- Graphique de corrélation entre métriques
+- Alertes Slack/Discord en temps réel
+- Rapport de régression automatique après déploiement
+- Service worker pour offline first
+- Push notifications pour alertes de régression

@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle, Share2, Download, Layers, Activity } from 'lucide-react'
+import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle, Download, Layers, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -10,6 +10,7 @@ import { ScoreRing } from './score-ring'
 import { ResourceBreakdown } from './resource-breakdown'
 import { CoreWebVitalsRadar } from './core-vitals-radar'
 import { IndustryComparison } from './industry-comparison'
+import { SocialShare } from './social-share'
 import { WaterfallChart } from './waterfall-chart'
 import { RecentSearches } from './recent-searches'
 import { toast } from '@/hooks/use-toast'
@@ -419,11 +420,13 @@ function ResultsView({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleShare} className="gap-1.5">
-            <Share2 className="h-3.5 w-3.5" />
-            Partager
-          </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <SocialShare
+            url={url}
+            score={result.performance}
+            lcp={result.lcp}
+            cls={result.cls}
+          />
           <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5">
             <Download className="h-3.5 w-3.5" />
             Exporter

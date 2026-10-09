@@ -19,14 +19,27 @@ export const metadata: Metadata = {
   description: "Surveillez et optimisez les performances de vos pages pour augmenter les conversions et mieux ranker sur Google. Core Web Vitals, Lighthouse, monitoring continu.",
   keywords: ["performance web", "Core Web Vitals", "Lighthouse", "vitesse de chargement", "SEO", "monitoring", "Lightspeed"],
   authors: [{ name: "Lightspeed" }],
+  manifest: "/site.webmanifest",
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    apple: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+  },
+  appleWebApp: {
+    title: "Lightspeed",
+    statusBarStyle: "default",
+    capable: true,
   },
   openGraph: {
     title: "Lightspeed — Surveillance de performance",
     description: "Surveillez et optimisez les performances de vos pages web.",
     siteName: "Lightspeed",
     type: "website",
+    locale: "fr_FR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lightspeed — Surveillance de performance",
+    description: "Surveillez et optimisez les performances de vos pages web.",
   },
 };
 

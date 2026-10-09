@@ -26,6 +26,7 @@ import { Footer } from '@/components/lightspeed/footer'
 import { CookieConsent } from '@/components/lightspeed/cookie-consent'
 import { CommandPalette } from '@/components/lightspeed/command-palette'
 import { ReadingProgress } from '@/components/lightspeed/reading-progress'
+import { GuidedTour } from '@/components/lightspeed/guided-tour'
 import { BackToTop, ShortcutHint } from '@/components/lightspeed/floating-utils'
 
 export default function Home() {
@@ -80,6 +81,7 @@ export default function Home() {
       <ShortcutHint />
       <BackToTop />
       <CookieConsent />
+      <GuidedTour />
     </div>
   )
 }
