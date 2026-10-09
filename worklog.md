@@ -824,3 +824,72 @@ Risques / Prochaines étapes recommandées :
 - Rapport de régression automatique après déploiement
 - Service worker pour offline first
 - Push notifications pour alertes de régression
+
+---
+Task ID: cron-10
+Agent: Main (Z.ai Code) — Revue webDev programmée (cron 15min)
+Task: QA + ajout de gamification (mini-jeu) et visualisation (histogramme)
+
+Work Log:
+- Lecture du worklog précédent : projet stable après cron-9 (20 sections, partage social, tour, PWA)
+- QA : serveur HTTP 200, lint 0 erreur, aucune erreur runtime
+- 21 sections sur la page après cette phase (+1 nouvelle)
+
+Nouvelles fonctionnalités ajoutées :
+1. **Mini-jeu de comparaison de vitesse** (speed-game.tsx) :
+   - 6 duels entre sites réels (Vercel vs Stripe, Figma vs Notion, etc.)
+   - L'utilisateur devine quel site a le meilleur score Lighthouse
+   - 2 cartes face à face avec "VS" au centre
+   - Révélation des scores après clic (couleur selon tranche)
+   - Badges Check/X pour indiquer la bonne/mauvaise réponse
+   - Stats : Score (X/6), Série (streak), Record (best streak)
+   - Feedback contextualisé après chaque duel
+   - Écran de fin avec message selon le score (Parfait/Bien joué/Continue)
+   - Bouton "Rejouer" pour recommencer
+   - Animations Framer Motion (slide, AnimatePresence)
+   - DOM vérifié : titre "Lequel est le plus rapide ?", 2 cartes, "Score : 0/6" ✅
+   - VLM : 8/10
+
+2. **Histogramme de distribution des scores** (score-histogram.tsx) :
+   - BarChart Recharts avec 10 tranches de scores (0-9, 10-19, ..., 90-100)
+   - Cell colorées selon la tranche (rouge < 50, ambre 50-79, vert ≥ 80)
+   - Stats de répartition : % Bon (≥80), % Moyen (50-79), % Faible (<50)
+   - Tooltip avec nombre de mesures par tranche
+   - Intégré dans le dashboard (après latence par région, avant comparaison avant/après)
+   - DOM vérifié : "Distribution des scores" présent ✅
+
+Structure de la page mise à jour (21 sections) :
+Hero → Onboarding → StatsBanner → Features → SpeedTest → Dashboard → BudgetCalculator
+→ Benefits → Integrations → Achievements → Glossary → Benchmark → TipsCarousel
+→ **SpeedGame** → Pricing → Leaderboard → Testimonials → Newsletter → FAQ → Changelog → CTA → Footer
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200, aucune erreur runtime
+- ✅ Mini-jeu : titre + 2 cartes + "Score : 0/6" (DOM + VLM 8/10)
+- ✅ Histogramme : "Distribution des scores" présent (DOM)
+- ✅ 21 sections rendues
+
+Stage Summary:
+- 2 nouvelles fonctionnalités (mini-jeu comparaison, histogramme distribution)
+- 21 sections sur la page, toutes fonctionnelles
+- Toutes vérifications QA passent : lint 0, serveur 200, DOM confirme
+
+Risques / Prochaines étapes recommandées :
+- Export PDF des rapports (skill pdf)
+- Page de connexion authentifiée (NextAuth) avec dashboard personnel
+- Webhooks réels (déploiement Vercel/GitHub)
+- Notifications email d'alerte (résend)
+- API publique pour CI/CD
+- Page de statut dédiée (/status) avec historique des incidents
+- Comparaison multi-sites (jusqu'à 4 en parallèle)
+- Service worker pour offline first (PWA)
+- Heatmap des Core Web Vitals par région
+- Timeline des incidents avec annotations
+- Graphique de corrélation entre métriques
+- Alertes Slack/Discord en temps réel
+- Rapport de régression automatique après déploiement
+- Push notifications pour alertes de régression
+- Classement hebdomadaire des utilisateurs du mini-jeu
+- Badges bonus dans le mini-jeu (série de 3, 5, 10)
+- Modechrono dans le mini-jeu (réponses en moins de 5s)

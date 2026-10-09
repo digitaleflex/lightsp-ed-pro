@@ -14,6 +14,7 @@ import { Integrations } from '@/components/lightspeed/integrations'
 import { Glossary } from '@/components/lightspeed/glossary'
 import { Benchmark } from '@/components/lightspeed/benchmark'
 import { TipsCarousel } from '@/components/lightspeed/tips-carousel'
+import { SpeedGame } from '@/components/lightspeed/speed-game'
 import { Pricing } from '@/components/lightspeed/pricing'
 import { Leaderboard } from '@/components/lightspeed/leaderboard'
 import { Testimonials } from '@/components/lightspeed/testimonials'
@@ -69,6 +70,7 @@ export default function Home() {
         <Glossary />
         <Benchmark />
         <TipsCarousel />
+        <SpeedGame />
         <Pricing />
         <Leaderboard />
         <Testimonials />

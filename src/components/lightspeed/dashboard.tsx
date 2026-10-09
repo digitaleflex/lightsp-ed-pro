@@ -21,6 +21,7 @@ import { Activity, Globe, TrendingUp, TrendingDown, Loader2, Gauge, Clock, Wifi,
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BeforeAfter } from './before-after'
+import { ScoreHistogram } from './score-histogram'
 import { cn } from '@/lib/utils'
 
 interface HistoryPoint {
@@ -363,6 +364,9 @@ export function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Histogramme de distribution des scores */}
+        {history.length >= 3 && <ScoreHistogram history={history} />}
 
         {/* Comparaison avant / après */}
         {history.length >= 2 && (
