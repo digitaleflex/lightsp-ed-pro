@@ -596,3 +596,71 @@ Risques / Prochaines étapes recommandées :
 - Comparaison multi-sites (jusqu'à 4 en parallèle)
 - Graphique radar des Core Web Vitals
 - Mode hors-ligne (PWA)
+
+---
+Task ID: cron-7
+Agent: Main (Z.ai Code) — Revue webDev programmée (cron 15min)
+Task: QA + ajout de visualisations avancées (radar, sparklines, formes animées)
+
+Work Log:
+- Lecture du worklog précédent : projet stable après cron-6 (18 sections, command palette)
+- QA : serveur HTTP 200, lint 0 erreur, aucune erreur runtime
+- 18 sections sur la page (inchangé — nouvelles fonctionnalités intégrées dans les sections existantes)
+
+Nouvelles fonctionnalités ajoutées :
+1. **Graphique radar des Core Web Vitals** (core-vitals-radar.tsx) :
+   - RadarChart Recharts hexagonal avec 6 axes (LCP, TBT, CLS, FCP, SI, TTFB)
+   - 2 séries : "Votre site" (vert plein) + "Cible" (ambre pointillé)
+   - Scores normalisés 0-100 (plus le score est élevé, plus c'est proche de l'optimum)
+   - Tooltip + légende
+   - PolarGrid + PolarAngleAxis + PolarRadiusAxis
+   - Intégré dans les résultats du test de vitesse (colonne Core Web Vitals, après poids total)
+   - VLM : hex chart avec LCP/TBT/CLS/FCP/SI/TTFB + zone verte remplie (8/10)
+
+2. **Sparklines dans le classement** (sparkline.tsx) :
+   - Mini graphique de tendance SVG (ligne simple, pas d'axes)
+   - Point final mis en évidence
+   - Couleur adaptative (currentColor hérite du scoreColor)
+   - API leaderboard enrichie : 7 derniers scores par site (take: 7 dans Prisma)
+   - Intégré à côté du score de performance dans chaque ligne du classement
+   - VLM : mini charts vectoriels colorés à côté de chaque PERF. score (8/10)
+
+3. **Formes flottantes animées dans le hero** (hero.tsx) :
+   - 4 formes géométriques animées (Framer Motion) : carré arrondi, cercle, losange, petit cercle
+   - 4 couleurs distinctes (primary, chart-3, chart-4, chart-2)
+   - Bordures border-2 + remplissages subtils (bg-*/5)
+   - Animations indépendantes (y-bob, rotate, drift) avec délais décalés
+   - pointer-events-none pour ne pas bloquer les interactions
+
+Améliorations de style :
+- API leaderboard : champ sparkline ajouté (7 points d'historique par site)
+- Hero : 4 formes animées en arrière-plan (subtils mais visibles)
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200, aucune erreur runtime
+- ✅ Radar : 6 axes LCP/TBT/CLS/FCP/SI/TTFB, zone verte + cible pointillée (VLM 8/10)
+- ✅ Sparklines : mini charts colorés à côté des scores PERF (VLM 8/10, DOM : SvgRoot)
+- ✅ API leaderboard : sparkline 7 points par site (vérifié : [7,7,7,7,7])
+- ✅ Hero : 4 formes flottantes animées (border-2, 4 couleurs, animations décalées)
+- ✅ 18 sections rendues
+
+Stage Summary:
+- 3 nouvelles fonctionnalités (radar Core Web Vitals, sparklines classement, formes animées hero)
+- API leaderboard enrichie (sparkline data)
+- 18 sections, toutes fonctionnelles
+- Toutes vérifications QA passent : lint 0, serveur 200, VLM 8/10
+
+Risques / Prochaines étapes recommandées :
+- Export PDF des rapports (skill pdf)
+- Page de connexion authentifiée (NextAuth) avec dashboard personnel
+- Webhooks réels (déploiement Vercel/GitHub)
+- Notifications email d'alerte (résend)
+- API publique pour CI/CD
+- Page de statut dédiée (/status) avec historique des incidents
+- Comparaison multi-sites (jusqu'à 4 en parallèle)
+- Mode hors-ligne (PWA)
+- Heatmap des Core Web Vitals par région
+- Timeline des incidents avec annotations
+- Partage social des résultats (Twitter, LinkedIn)
+- Mode démo guidée (tour interactif pas à pas)

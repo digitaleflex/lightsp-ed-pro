@@ -15,6 +15,28 @@ export function Hero() {
       <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px]" />
       <div className="pointer-events-none absolute top-40 -right-20 h-[300px] w-[300px] rounded-full bg-chart-2/20 blur-[100px]" />
 
+      {/* Formes flottantes animées */}
+      <motion.div
+        className="pointer-events-none absolute left-[6%] top-[18%] h-20 w-20 rounded-2xl border-2 border-primary/25 bg-primary/5"
+        animate={{ y: [0, -20, 0], rotate: [0, 8, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="pointer-events-none absolute right-[12%] top-[52%] h-14 w-14 rounded-full border-2 border-chart-3/30 bg-chart-3/5"
+        animate={{ y: [0, 18, 0], x: [0, 10, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+      />
+      <motion.div
+        className="pointer-events-none absolute left-[42%] bottom-[10%] h-16 w-16 rotate-45 border-2 border-chart-4/25 bg-chart-4/5"
+        animate={{ y: [0, -14, 0], rotate: [45, 100, 45] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+      <motion.div
+        className="pointer-events-none absolute right-[30%] bottom-[20%] h-8 w-8 rounded-full border-2 border-chart-2/30 bg-chart-2/5"
+        animate={{ y: [0, -22, 0], x: [0, -6, 0] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+
       <div className="container relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Colonne texte */}

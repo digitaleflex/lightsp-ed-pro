@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { ScoreRing } from './score-ring'
 import { ResourceBreakdown } from './resource-breakdown'
+import { CoreWebVitalsRadar } from './core-vitals-radar'
 import { WaterfallChart } from './waterfall-chart'
 import { RecentSearches } from './recent-searches'
 import { toast } from '@/hooks/use-toast'
@@ -489,6 +490,26 @@ function ResultsView({
               <p className="text-xl font-bold">{result.fid}ms</p>
             </div>
           </div>
+
+          {/* Radar des Core Web Vitals */}
+          <CoreWebVitalsRadar
+            metrics={[
+              { metric: 'LCP', score: Math.max(0, Math.min(100, Math.round(100 - (result.lcp / 4) * 100))), fullMark: 100 },
+              { metric: 'TBT', score: Math.max(0, Math.min(100, Math.round(100 - (result.tbt / 600) * 100))), fullMark: 100 },
+              { metric: 'CLS', score: Math.max(0, Math.min(100, Math.round(100 - (result.cls / 0.25) * 100))), fullMark: 100 },
+              { metric: 'FCP', score: Math.max(0, Math.min(100, Math.round(100 - (result.fcp / 3) * 100))), fullMark: 100 },
+              { metric: 'SI', score: Math.max(0, Math.min(100, Math.round(100 - (result.si / 5.8) * 100))), fullMark: 100 },
+              { metric: 'TTFB', score: Math.max(0, Math.min(100, Math.round(100 - (result.ttfb / 500) * 100))), fullMark: 100 },
+            ]}
+            target={[
+              { metric: 'LCP', score: 100, fullMark: 100 },
+              { metric: 'TBT', score: 100, fullMark: 100 },
+              { metric: 'CLS', score: 100, fullMark: 100 },
+              { metric: 'FCP', score: 100, fullMark: 100 },
+              { metric: 'SI', score: 100, fullMark: 100 },
+              { metric: 'TTFB', score: 100, fullMark: 100 },
+            ]}
+          />
         </div>
       </div>
 

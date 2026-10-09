@@ -6,6 +6,7 @@ import { Trophy, Loader2, ArrowUp, ArrowDown, Minus, Globe, GitCompareArrows } f
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ScoreRing } from './score-ring'
+import { Sparkline } from './sparkline'
 import { CompareModal } from './compare-modal'
 import { toast } from '@/hooks/use-toast'
 
@@ -23,6 +24,7 @@ interface LeaderEntry {
   cls: number
   tbt: number
   totalWeight: number
+  sparkline?: number[]
 }
 
 const CATEGORIES = ['Tous', 'Tech', 'SaaS', 'E-commerce', 'Finance', 'Design', 'Divertissement', 'Voyage'] as const
@@ -202,9 +204,14 @@ export function Leaderboard() {
                       </div>
                     </div>
 
-                    {/* Perf */}
-                    <div className="text-center md:text-center">
+                    {/* Perf + sparkline */}
+                    <div className="flex items-center justify-center gap-2 md:text-center">
                       <span className={cn('text-base font-bold md:text-lg', scoreColor)}>{e.performance}</span>
+                      {e.sparkline && e.sparkline.length >= 2 && (
+                        <span className={scoreColor}>
+                          <Sparkline data={e.sparkline} width={50} height={18} stroke="currentColor" />
+                        </span>
+                      )}
                     </div>
 
                     {/* Access */}

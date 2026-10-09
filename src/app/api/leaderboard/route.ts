@@ -8,7 +8,7 @@ export async function GET() {
       include: {
         tests: {
           orderBy: { createdAt: 'desc' },
-          take: 1,
+          take: 7, // 7 derniers tests pour les sparklines
         },
       },
     })
@@ -17,6 +17,11 @@ export async function GET() {
       .map((w) => {
         const latest = w.tests[0]
         if (!latest) return null
+        // Mini-historique de scores pour le sparkline (du plus ancien au plus récent)
+        const sparkline = w.tests
+          .map((t) => t.performance)
+          .reverse()
+          .slice(-7)
         return {
           id: w.id,
           name: w.name,
@@ -31,6 +36,7 @@ export async function GET() {
           tbt: latest.tbt,
           totalWeight: latest.totalWeight,
           createdAt: latest.createdAt,
+          sparkline,
         }
       })
       .filter(Boolean)
