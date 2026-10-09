@@ -2,12 +2,13 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle, Share2, Layers } from 'lucide-react'
+import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle, Share2, Download, Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { ScoreRing } from './score-ring'
 import { ResourceBreakdown } from './resource-breakdown'
+import { RecentSearches } from './recent-searches'
 import { toast } from '@/hooks/use-toast'
 
 interface AnalyzeResult {
@@ -222,6 +223,16 @@ export function SpeedTest() {
               ))}
             </div>
           </div>
+
+          {/* Analyses récentes (carrousel horizontal) */}
+          {status === 'idle' && (
+            <RecentSearches
+              onPick={(u) => {
+                setUrl(u)
+                runAnalysis(u)
+              }}
+            />
+          )}
         </div>
 
         {/* Résultats */}
@@ -256,18 +267,46 @@ export function SpeedTest() {
 }
 
 function ScanningState({ stepIdx, steps }: { stepIdx: number; steps: string[] }) {
+  const pct = Math.round(((stepIdx + 1) / steps.length) * 100)
   return (
     <div className="flex flex-col items-center gap-6 py-8">
+      {/* Jauge circulaire avec pourcentage */}
       <div className="relative flex h-24 w-24 items-center justify-center">
-        <div className="absolute inset-0 rounded-full border-4 border-muted" />
-        <motion.div
-          className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        />
-        <Gauge className="h-8 w-8 text-primary" />
+        <svg className="absolute inset-0 -rotate-90" viewBox="0 0 96 96">
+          <circle cx={48} cy={48} r={42} fill="none" stroke="var(--color-muted)" strokeWidth={6} opacity={0.4} />
+          <motion.circle
+            cx={48}
+            cy={48}
+            r={42}
+            fill="none"
+            stroke="var(--color-primary)"
+            strokeWidth={6}
+            strokeLinecap="round"
+            strokeDasharray={2 * Math.PI * 42}
+            animate={{ strokeDashoffset: 2 * Math.PI * 42 * (1 - pct / 100) }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          />
+        </svg>
+        <div className="flex flex-col items-center">
+          <span className="text-2xl font-bold text-primary">{pct}%</span>
+          <Gauge className="h-4 w-4 text-primary/60" />
+        </div>
       </div>
-      <div className="w-full max-w-md space-y-2">
+
+      <p className="text-sm font-medium text-foreground">
+        Analyse en cours… <span className="text-muted-foreground">étape {stepIdx + 1}/{steps.length}</span>
+      </p>
+
+      {/* Barre de progression */}
+      <div className="h-1.5 w-full max-w-md overflow-hidden rounded-full bg-muted">
+        <motion.div
+          className="h-full rounded-full bg-primary"
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+        />
+      </div>
+
+      <div className="w-full max-w-md space-y-1.5">
         {steps.map((s, i) => (
           <div
             key={s}
@@ -277,7 +316,7 @@ function ScanningState({ stepIdx, steps }: { stepIdx: number; steps: string[] })
                 ? 'text-muted-foreground'
                 : i === stepIdx
                 ? 'bg-primary/5 font-medium text-foreground'
-                : 'text-muted-foreground/50'
+                : 'text-muted-foreground/40'
             )}
           >
             {i < stepIdx ? (
@@ -322,6 +361,44 @@ function ResultsView({
     }
   }
 
+  const handleExport = () => {
+    const report = {
+      url,
+      device,
+      region,
+      date: new Date().toISOString(),
+      scores: {
+        performance: result.performance,
+        accessibility: result.accessibility,
+        bestPractices: result.bestPractices,
+        seo: result.seo,
+      },
+      coreWebVitals: {
+        lcp: result.lcp,
+        fcp: result.fcp,
+        tbt: result.tbt,
+        cls: result.cls,
+        si: result.si,
+        ttfb: result.ttfb,
+        fid: result.fid,
+      },
+      totalWeight: result.totalWeight,
+      resourceBreakdown: result.resourceBreakdown,
+      regionLatency: result.regionLatency,
+      recommendations: result.recommendations,
+    }
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    const slug = url.replace(/^https?:\/\//, '').replace(/[^a-z0-9]/gi, '-')
+    link.download = `lightspeed-rapport-${slug}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(link.href)
+    toast({ title: 'Rapport exporté', description: 'Le fichier JSON a été téléchargé.' })
+  }
+
   return (
     <div className="overflow-hidden rounded-3xl border border-border/60 bg-card shadow-xl">
       {/* En-tête */}
@@ -342,6 +419,10 @@ function ResultsView({
           <Button variant="outline" size="sm" onClick={handleShare} className="gap-1.5">
             <Share2 className="h-3.5 w-3.5" />
             Partager
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5">
+            <Download className="h-3.5 w-3.5" />
+            Exporter
           </Button>
           <Button variant="outline" size="sm" onClick={onRerun} className="gap-1.5">
             <RefreshCw className="h-3.5 w-3.5" />
@@ -364,10 +445,27 @@ function ResultsView({
         {/* Core Web Vitals + métriques */}
         <div className="space-y-6">
           <div>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              <Zap className="h-4 w-4 text-primary" />
-              Core Web Vitals
-            </h3>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <Zap className="h-4 w-4 text-primary" />
+                Core Web Vitals
+              </h3>
+              {/* Légende de couleur */}
+              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-primary" />
+                  Bon
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-chart-4" />
+                  Moyen
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-destructive" />
+                  Faible
+                </span>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <VitalCard label="LCP" value={`${result.lcp}s`} status={result.lcp < 2.5 ? 'good' : result.lcp < 4 ? 'average' : 'poor'} hint="Largest Contentful Paint" />
               <VitalCard label="TBT" value={`${result.tbt}ms`} status={result.tbt < 200 ? 'good' : result.tbt < 600 ? 'average' : 'poor'} hint="Total Blocking Time" />

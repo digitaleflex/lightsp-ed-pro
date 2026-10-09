@@ -10,6 +10,7 @@ import { Benefits } from '@/components/lightspeed/benefits'
 import { Pricing } from '@/components/lightspeed/pricing'
 import { Leaderboard } from '@/components/lightspeed/leaderboard'
 import { Testimonials } from '@/components/lightspeed/testimonials'
+import { Achievements } from '@/components/lightspeed/achievements'
 import { FAQ } from '@/components/lightspeed/faq'
 import { Newsletter } from '@/components/lightspeed/newsletter'
 import { CTA } from '@/components/lightspeed/cta'
@@ -43,6 +44,7 @@ export default function Home() {
         <SpeedTest />
         <Dashboard />
         <Benefits />
+        <Achievements />
         <Pricing />
         <Leaderboard />
         <Testimonials />

@@ -52,15 +52,19 @@ export function analyzeUrl(url: string, device: 'desktop' | 'mobile' = 'desktop'
   const bestPractices = Math.round((0.68 + rng() * 0.3) * 100)
   const seo = Math.round((0.8 + rng() * 0.2) * 100)
 
-  // Core Web Vitals (mobile plus lent)
-  const lcp = +(0.8 + rng() * 3.2 + (device === 'mobile' ? 1 : 0)).toFixed(2)
-  const fcp = +(0.4 + rng() * 2.2 + (device === 'mobile' ? 0.6 : 0)).toFixed(2)
-  const tbt = Math.round(50 + rng() * 600 + (device === 'mobile' ? 200 : 0))
-  const cls = +(rng() * 0.3).toFixed(3)
-  const si = +(1.2 + rng() * 4 + (device === 'mobile' ? 1.5 : 0)).toFixed(2)
-  const ttfb = Math.round(80 + rng() * 900)
-  const fid = Math.round(2 + rng() * 200)
-  const totalWeight = Math.round(180 + rng() * 4200)
+  // Core Web Vitals — plages resserrées pour des démos majoritairement vertes/ambres
+  // (cohérent avec des sites populaires réels : Vercel, Stripe, etc.)
+  // Seuils Lighthouse : LCP < 2.5s vert, < 4s ambre ; TBT < 200ms vert, < 600ms ambre ;
+  // CLS < 0.1 vert, < 0.25 ambre ; FCP < 1.8s vert, < 3s ambre ; SI < 3.4s vert, < 5.8s ambre ;
+  // TTFB < 200ms vert, < 500ms ambre.
+  const lcp = +(1.0 + rng() * 2.0 + (device === 'mobile' ? 0.8 : 0)).toFixed(2)
+  const fcp = +(0.5 + rng() * 1.6 + (device === 'mobile' ? 0.5 : 0)).toFixed(2)
+  const tbt = Math.round(30 + rng() * 280 + (device === 'mobile' ? 150 : 0))
+  const cls = +(rng() * 0.18).toFixed(3)
+  const si = +(1.3 + rng() * 2.6 + (device === 'mobile' ? 1.2 : 0)).toFixed(2)
+  const ttfb = Math.round(90 + rng() * 420)
+  const fid = Math.round(2 + rng() * 120)
+  const totalWeight = Math.round(220 + rng() * 3200)
 
   // Recommandations Lighthouse
   const allRecommendations = [

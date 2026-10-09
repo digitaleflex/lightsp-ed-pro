@@ -120,6 +120,26 @@ export function Leaderboard() {
             <Loader2 className="h-7 w-7 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Chargement du classement…</p>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-card/50 py-16 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <Trophy className="h-7 w-7 opacity-50" />
+            </div>
+            <div>
+              <p className="font-semibold">Aucun site dans cette catégorie</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Essayez une autre catégorie ou ajoutez votre propre site via l'outil de test.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2 gap-1.5"
+              onClick={() => setCategory('Tous')}
+            >
+              Voir tous les sites
+            </Button>
+          </div>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
             {/* En-tête desktop */}
