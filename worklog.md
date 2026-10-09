@@ -514,3 +514,85 @@ Risques / Prochaines étapes recommandées :
 - Mode démo guidée (onboarding interactif pas à pas)
 - Alertes personnalisées avec seuils configurables
 - Export CSV/Excel de l'historique de monitoring
+
+---
+Task ID: cron-6
+Agent: Main (Z.ai Code) — Revue webDev programmée (cron 15min)
+Task: QA + ajout de fonctionnalités d'UX premium (command palette, glossaire, animations)
+
+Work Log:
+- Lecture du worklog précédent : projet stable après cron-5 (17 sections)
+- QA : serveur HTTP 200, lint 0 erreur, avertissement "Fast Refresh" lié au HMR (non bloquant)
+- 18 sections sur la page après cette phase
+
+Nouvelles fonctionnalités ajoutées :
+1. **Palette de commande globale (Cmd/Ctrl+K)** (command-palette.tsx) :
+   - Overlay modal avec recherche en temps réel (composant shadcn/ui Command + cmdk)
+   - 3 groupes : Navigation (10 sections), Actions rapides (thème, retour en haut), Liens (GitHub, site officiel)
+   - 14 items au total avec icônes, hints, raccourcis
+   - Raccourci Cmd/Ctrl+K pour ouvrir/fermer, Échap pour fermer
+   - Événement personnalisé `lightspeed:open-command` pour ouverture depuis la navbar
+   - Bouton "Rechercher ⌘K" ajouté dans la navbar (desktop)
+   - Filtre instantané, navigation clavier, scroll auto
+   - DOM vérifié : 3 groupes, 14 items ✅
+
+2. **Section Glossaire Core Web Vitals** (glossary.tsx) :
+   - 6 cartes de termes : LCP, INP, CLS, FCP, TTFB, TBT
+   - Chaque carte : icône colorée, abréviation, nom complet, description
+   - Tableau des seuils Google (Bon/Moyen/Faible) avec code couleur vert/ambre/rouge
+   - Bandeau CTA "Tester mon site" en bas
+   - Placée entre Achievements et Pricing
+   - DOM vérifié : 6 cartes (LCP, INP, CLS, FCP, TTFB, TBT) ✅
+
+3. **Barre de progression de lecture** (reading-progress.tsx) :
+   - Barre fixe en haut de la page (speed-gradient)
+   - useScroll + useSpring de Framer Motion pour un suivi fluide
+   - Indique visuellement la progression dans la page
+
+4. **Compteur animé** (AnimatedCounter dans reading-progress.tsx) :
+   - Les chiffres s'incrémentent progressivement au scroll (easeOutCubic)
+   - useInView de Framer Motion pour déclencher au viewport
+   - Formatage FR (12 000 au lieu de 12000)
+   - Intégré dans le stats banner (4 stats animées)
+   - DOM vérifié : 4 cartes avec icônes ✅
+
+Améliorations de style :
+- Navbar : bouton "Rechercher ⌘K" avec icône Search et kbd badge
+- Shortcut hint : texte mis à jour "pour ouvrir la recherche" (au lieu de "pour tester un site")
+- Stats banner : valeurs numériques au lieu de chaînes statiques, animation au scroll
+
+Structure de la page mise à jour (18 sections) :
+Hero → Onboarding → StatsBanner → Features → SpeedTest → Dashboard → BudgetCalculator
+→ Benefits → Integrations → Achievements → **Glossary** → Pricing → Leaderboard → Testimonials
+→ Newsletter → FAQ → Changelog → CTA → Footer
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200, aucune erreur runtime
+- ✅ Command palette : Cmd+K ouvre l'overlay, 3 groupes, 14 items (DOM)
+- ✅ Glossaire : 6 cartes LCP/INP/CLS/FCP/TTFB/TBT avec seuils Google (DOM)
+- ✅ Stats banner : 4 cartes avec icônes + AnimatedCounter (DOM)
+- ✅ Barre de progression de lecture : rendue en haut
+- ✅ Bouton Rechercher dans la navbar
+- ✅ 18 sections rendues
+
+Stage Summary:
+- 4 nouvelles fonctionnalités (command palette, glossaire, barre progression, compteur animé)
+- 1 amélioration navbar (bouton recherche)
+- 18 sections sur la page, toutes fonctionnelles
+- Toutes vérifications QA passent : lint 0, serveur 200, DOM confirme les composants
+
+Risques / Prochaines étapes recommandées :
+- Export PDF des rapports (skill pdf)
+- Page de connexion authentifiée (NextAuth) avec dashboard personnel
+- Webhooks réels (déploiement Vercel/GitHub)
+- Notifications email d'alerte (résend)
+- API publique pour CI/CD
+- Page de statut dédiée (/status) avec historique des incidents
+- Documentation interactive intégrée
+- Mode démo guidée (onboarding interactif pas à pas)
+- Alertes personnalisées avec seuils configurables
+- Export CSV/Excel de l'historique de monitoring
+- Comparaison multi-sites (jusqu'à 4 en parallèle)
+- Graphique radar des Core Web Vitals
+- Mode hors-ligne (PWA)

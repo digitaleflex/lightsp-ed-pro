@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { Menu, X, Zap, Gauge } from 'lucide-react'
+import { Menu, X, Zap, Gauge, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { cn } from '@/lib/utils'
@@ -63,6 +63,18 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="hidden items-center gap-2 md:flex">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-muted-foreground"
+              onClick={() => window.dispatchEvent(new Event('lightspeed:open-command'))}
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span className="hidden lg:inline">Rechercher</span>
+              <kbd className="ml-1 hidden rounded border border-border bg-muted px-1 py-0.5 font-mono text-[9px] font-semibold lg:inline">
+                ⌘K
+              </kbd>
+            </Button>
             <ThemeToggle />
             <Button variant="ghost" size="sm" className="text-sm" asChild>
               <Link href="#outil">Connexion</Link>

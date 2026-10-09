@@ -11,6 +11,7 @@ import { Dashboard } from '@/components/lightspeed/dashboard'
 import { BudgetCalculator } from '@/components/lightspeed/budget-calculator'
 import { Benefits } from '@/components/lightspeed/benefits'
 import { Integrations } from '@/components/lightspeed/integrations'
+import { Glossary } from '@/components/lightspeed/glossary'
 import { Pricing } from '@/components/lightspeed/pricing'
 import { Leaderboard } from '@/components/lightspeed/leaderboard'
 import { Testimonials } from '@/components/lightspeed/testimonials'
@@ -21,7 +22,9 @@ import { Changelog } from '@/components/lightspeed/changelog'
 import { CTA } from '@/components/lightspeed/cta'
 import { Footer } from '@/components/lightspeed/footer'
 import { CookieConsent } from '@/components/lightspeed/cookie-consent'
-import { BackToTop, KeyboardShortcuts, ShortcutHint } from '@/components/lightspeed/floating-utils'
+import { CommandPalette } from '@/components/lightspeed/command-palette'
+import { ReadingProgress } from '@/components/lightspeed/reading-progress'
+import { BackToTop, ShortcutHint } from '@/components/lightspeed/floating-utils'
 
 export default function Home() {
   // Seed automatique de la base au premier chargement
@@ -39,7 +42,8 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <KeyboardShortcuts />
+      <ReadingProgress />
+      <CommandPalette />
       <Navbar />
       <main className="flex-1">
         <Hero />
@@ -52,6 +56,7 @@ export default function Home() {
         <Benefits />
         <Integrations />
         <Achievements />
+        <Glossary />
         <Pricing />
         <Leaderboard />
         <Testimonials />

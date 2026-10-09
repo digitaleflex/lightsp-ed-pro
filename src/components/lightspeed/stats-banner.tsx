@@ -1,15 +1,18 @@
 'use client'
 
-import * as React from 'react'
 import { motion } from 'framer-motion'
 import { Globe, Activity, Gauge, Users } from 'lucide-react'
+import { AnimatedCounter } from './reading-progress'
+import { cn } from '@/lib/utils'
 
 const STATS = [
-  { icon: Globe, label: 'Sites surveillés', value: '12 000+', color: 'text-chart-2' },
-  { icon: Activity, label: 'Tests réalisés', value: '3,2 M', color: 'text-chart-1' },
-  { icon: Gauge, label: 'Score moyen', value: '87 / 100', color: 'text-chart-3' },
-  { icon: Users, label: 'Utilisateurs actifs', value: '4 500', color: 'text-chart-4' },
+  { icon: Globe, label: 'Sites surveillés', value: 12000, suffix: '+', color: 'text-chart-2' },
+  { icon: Activity, label: 'Tests réalisés', value: 3, suffix: ',2 M', color: 'text-chart-1' },
+  { icon: Gauge, label: 'Score moyen', value: 87, suffix: ' / 100', color: 'text-chart-3' },
+  { icon: Users, label: 'Utilisateurs actifs', value: 4500, suffix: '', color: 'text-chart-4' },
 ] as const
+
+const formatNumber = (v: number) => v.toLocaleString('fr-FR')
 
 export function StatsBanner() {
   return (
@@ -29,7 +32,13 @@ export function StatsBanner() {
                 <s.icon className="h-5 w-5" />
               </div>
               <div>
-                <p className={`text-xl font-bold ${s.color} sm:text-2xl`}>{s.value}</p>
+                <p className={cn('text-xl font-bold sm:text-2xl', s.color)}>
+                  <AnimatedCounter
+                    value={s.value}
+                    format={s.value >= 1000 ? formatNumber : undefined}
+                  />
+                  {s.suffix}
+                </p>
                 <p className="text-xs text-muted-foreground">{s.label}</p>
               </div>
             </motion.div>
