@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { label: 'Tableau de bord', href: '#dashboard' },
   { label: 'Tarifs', href: '#tarifs' },
   { label: 'Classement', href: '#classement' },
+  { label: 'Avis', href: '#testimonials' },
   { label: 'FAQ', href: '#faq' },
 ]
 

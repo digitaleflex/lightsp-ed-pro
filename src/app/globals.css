@@ -64,11 +64,11 @@
   --border: oklch(0.91 0.01 150);
   --input: oklch(0.93 0.008 150);
   --ring: oklch(0.62 0.17 155);
-  --chart-1: oklch(0.62 0.17 155);
-  --chart-2: oklch(0.7 0.15 60);
-  --chart-3: oklch(0.6 0.12 220);
-  --chart-4: oklch(0.75 0.18 320);
-  --chart-5: oklch(0.68 0.16 20);
+  --chart-1: oklch(0.62 0.17 155); /* vert émeraude — bon/JavaScript */
+  --chart-2: oklch(0.68 0.16 150); /* vert clair — bon statut/Images */
+  --chart-3: oklch(0.6 0.12 220);  /* bleu — CSS */
+  --chart-4: oklch(0.75 0.18 55);  /* ambre/orange — avertissement/Polices */
+  --chart-5: oklch(0.68 0.16 20);  /* rouge-orange — Autres */
   --sidebar: oklch(0.985 0.005 150);
   --sidebar-foreground: oklch(0.16 0.02 160);
   --sidebar-primary: oklch(0.62 0.17 155);
@@ -91,18 +91,18 @@
   --secondary: oklch(0.27 0.02 160);
   --secondary-foreground: oklch(0.97 0.005 150);
   --muted: oklch(0.27 0.02 160);
-  --muted-foreground: oklch(0.7 0.015 155);
+  --muted-foreground: oklch(0.78 0.02 155);
   --accent: oklch(0.3 0.03 155);
   --accent-foreground: oklch(0.97 0.005 150);
   --destructive: oklch(0.7 0.19 22);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 14%);
   --ring: oklch(0.7 0.17 155);
-  --chart-1: oklch(0.7 0.17 155);
-  --chart-2: oklch(0.75 0.16 60);
-  --chart-3: oklch(0.65 0.13 220);
-  --chart-4: oklch(0.78 0.18 320);
-  --chart-5: oklch(0.72 0.17 20);
+  --chart-1: oklch(0.7 0.17 155); /* vert émeraude */
+  --chart-2: oklch(0.72 0.16 150); /* vert clair — bon statut */
+  --chart-3: oklch(0.65 0.13 220); /* bleu */
+  --chart-4: oklch(0.78 0.18 55);  /* ambre — avertissement */
+  --chart-5: oklch(0.72 0.17 20); /* rouge-orange */
   --sidebar: oklch(0.21 0.02 165);
   --sidebar-foreground: oklch(0.97 0.005 150);
   --sidebar-primary: oklch(0.7 0.17 155);

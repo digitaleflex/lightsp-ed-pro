@@ -182,3 +182,92 @@ Risques / Prochaines étapes recommandées :
 - Historique des tests par utilisateur (table de bord authentifié)
 - Tests A/B de variantes de pages (comparaison de versions)
 - Intégration Slack/Discord pour alertes
+
+---
+Task ID: cron-2
+Agent: Main (Z.ai Code) — Revue webDev programmée (cron 15min)
+Task: QA visuel, correction du bug couleur Lighthouse + ajout de fonctionnalités de conversion
+
+Work Log:
+- Lecture du worklog précédent : clone stable après cron-1 (7 nouvelles fonctionnalités, bugs corrigés)
+- QA visuel complet via agent-browser + VLM en mode clair ET sombre
+
+Bugs corrigés :
+- 🔴 BUG COULEUR SYSTÉMIQUE : les scores Lighthouse >= 90 utilisaient `chart-2` (ambre, hue 60) au lieu de vert
+  → La variable CSS `--chart-2` redéfinie en VERT `oklch(0.68 0.16 150)` (light) et `oklch(0.72 0.16 150)` (dark)
+  → Impact : tous les anneaux de score, vitals, indicateurs "bon", classement, badges sont maintenant VERTS (convention Lighthouse)
+  → La palette donut "Images" repositionnée en ambre dédié (chart-4 maintenant ambre hue 55)
+  → Vérifié : 0 pixel ambre dans le hero après correction (pixel analysis VLM)
+- 🔴 BUG TOGGLE THÈME : le mode sombre ne s'activait pas au clic (restait "light")
+  → Cause : `enableSystem` dans ThemeProvider forçait la préférence système (claire)
+  → Correction : `enableSystem` retiré, le toggle utilisateur est maintenant explicite
+- 🟡 CONTRASTE MODE SOMBRE : le texte secondaire (muted-foreground) était trop sombre (oklch 0.7)
+  → Brightened à `oklch(0.78 0.02 155)` pour un meilleur contraste WCAG
+- 🟡 CARTES FEATURES EN SOMBRE : les numéros décoratifs (01-08) étaient trop visibles
+  → Opacité réduite en dark mode : `dark:text-muted-foreground/5` (au lieu de /10)
+- 🟡 SYMBOLE ⌘ : rendu comme "N" dans certaines polices
+  → Remplacé par le texte "Ctrl K" dans le shortcut hint
+
+Nouvelles fonctionnalités ajoutées :
+1. **Section Newsletter** (newsletter.tsx) :
+   - Carte arrondie avec halo décoratif
+   - Champ email avec validation regex
+   - États : idle / loading (spinner) / done (confirmation avec icône check)
+   - Preuve sociale : avatars empilés + "4 200+ développeurs abonnés"
+   - Lien politique de confidentialité
+
+2. **Section Témoignages** (testimonials.tsx) :
+   - 3 cartes de citations avec étoiles (5★ vert), citation, avatar dégradé, nom + rôle
+   - Nuage de logos (Vercel, Linear, Notion, Stripe, Figma, Cloudflare)
+   - Bandeau de métriques (4 500+ équipes, 18 pts gagnés, 4,9/5 satisfaction)
+   - Lien "Avis" ajouté dans la navbar
+
+3. **Bannière de consentement cookies RGPD** (cookie-consent.tsx) :
+   - Apparition différée (1,8s) en bas de l'écran
+   - Boutons "Tout accepter" / "Refuser les optionnels"
+   - Persistance via localStorage
+   - Icône Cookie, lien "En savoir plus"
+
+4. **Bouton "Retour en haut"** (BackToTop) :
+   - Apparaît après 600px de scroll
+   - Animation Framer Motion (scale + opacity)
+   - Bouton circulaire vert avec icône flèche
+
+5. **Raccourci clavier Ctrl/Cmd+K** (KeyboardShortcuts) :
+   - Focalise et fait défiler vers le champ URL de l'outil
+   - Effet de surbrillance (ring) pendant 1,5s
+   - Indicateur visuel "Ctrl K pour tester un site" en bas à gauche (desktop)
+
+Améliorations de style :
+- globals.css : palette chart redéfinie (chart-2 vert, chart-4 ambre) avec commentaires
+- features.tsx : numéros décoratifs avec opacité adaptative dark mode
+- floating-utils.tsx : shortcut hint avec bordure et ombre
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200, aucune erreur runtime
+- ✅ Bug couleur corrigé : scores verts, gradient titre tout vert (VLM pixel analysis : 0 ambre)
+- ✅ Toggle thème : dark ↔ light fonctionne (vérifié className "dark"/"light")
+- ✅ Mode sombre : contraste amélioré (VLM 9/10), numéros subtils (VLM 5-10% opacité)
+- ✅ Newsletter : validation email, états loading/done, preuve sociale "4 200+ abonnés"
+- ✅ Témoignages : 3 cartes avec étoiles, nuage de logos, métriques
+- ✅ Cookies : apparition différée, persistance localStorage
+- ✅ Retour en haut : apparaît après scroll, animation fluide
+- ✅ Ctrl+K : focalise le champ URL (vérifié : activeElement placeholder = "exemple.com")
+
+Stage Summary:
+- 5 bugs corrigés (couleur systémique, toggle thème, contraste sombre, numéros cartes, symbole ⌘)
+- 5 nouvelles fonctionnalités (newsletter, témoignages, cookies RGPD, retour en haut, raccourci clavier)
+- Mode sombre entièrement poli (9/10 VLM)
+- Palette couleurs cohérente : vert = bon, ambre = avertissement, rouge = critique
+- Toutes vérifications QA passent
+
+Risques / Prochaines étapes recommandées :
+- Export PDF des rapports de test de vitesse (skill pdf)
+- Page de connexion authentifiée (NextAuth) avec dashboard personnel
+- Webhooks réels (déploiement Vercel/GitHub)
+- Notifications email d'alerte (résend)
+- Intégration Slack/Discord
+- Tests A/B de variantes de pages
+- Historique des tests par utilisateur
+- API publique pour intégration CI/CD

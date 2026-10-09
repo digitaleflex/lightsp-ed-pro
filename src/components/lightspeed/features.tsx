@@ -110,7 +110,7 @@ export function Features() {
                 )}
               />
               {/* Numéro discret en arrière-plan */}
-              <span className="pointer-events-none absolute right-5 top-4 select-none font-mono text-5xl font-bold text-muted-foreground/[0.06] transition-colors group-hover:text-primary/10">
+              <span className="pointer-events-none absolute right-5 top-4 select-none font-mono text-5xl font-bold text-muted-foreground/10 transition-colors group-hover:text-primary/20 dark:text-muted-foreground/5 dark:group-hover:text-primary/10">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <div className="relative">
