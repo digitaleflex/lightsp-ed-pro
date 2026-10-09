@@ -17,6 +17,7 @@ import { Testimonials } from '@/components/lightspeed/testimonials'
 import { Achievements } from '@/components/lightspeed/achievements'
 import { FAQ } from '@/components/lightspeed/faq'
 import { Newsletter } from '@/components/lightspeed/newsletter'
+import { Changelog } from '@/components/lightspeed/changelog'
 import { CTA } from '@/components/lightspeed/cta'
 import { Footer } from '@/components/lightspeed/footer'
 import { CookieConsent } from '@/components/lightspeed/cookie-consent'
@@ -56,6 +57,7 @@ export default function Home() {
         <Testimonials />
         <Newsletter />
         <FAQ />
+        <Changelog />
         <CTA />
       </main>
       <Footer />

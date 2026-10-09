@@ -438,3 +438,79 @@ Risques / Prochaines étapes recommandées :
 - Comparaison évolution avant/après optimisation
 - Page de statut dédiée (/status) avec historique des incidents
 - Documentation interactive intégrée
+
+---
+Task ID: cron-5
+Agent: Main (Z.ai Code) — Revue webDev programmée (cron 15min)
+Task: QA + ajout de visualisations avancées (waterfall, changelog, comparaison avant/après)
+
+Work Log:
+- Lecture du worklog précédent : projet stable après cron-4 (27 fonctionnalités, 16 sections)
+- QA : serveur HTTP 200, erreur "Vercel is not defined" obsolète (résolue en cron-4)
+- 17 sections sur la page après cette phase
+
+Nouvelles fonctionnalités ajoutées :
+1. **Cascade de chargement des ressources (Waterfall)** (waterfall-chart.tsx) :
+   - Graphique timeline horizontal style Lighthouse
+   - 12 ressources triées par startTime, colorées par type (JS/Images/CSS/Polices/Autres)
+   - Barres animées (Framer Motion, décalage séquentiel)
+   - Étiquettes durée inline + taille en Ko
+   - Légende des types + durée totale
+   - Données générées dans performance.ts (waterfall: {name, type, color, startTime, duration, size}[])
+   - Intégré dans les résultats du test de vitesse (après latence par région)
+   - VLM : timeline avec barres colorées, noms/durées/tailles visibles (8/10)
+
+2. **Journal des évolutions (Changelog)** (changelog.tsx) :
+   - Timeline verticale avec 5 entrées (v2.0 → v2.4)
+   - Types différenciés : Fonctionnalité / Amélioration / Sécurité / Métrique
+   - Icônes et couleurs par type (Sparkles/Zap/Shield/BarChart3)
+   - Points timeline circulaires avec ring-4 ring-background
+   - Lien "Voir l'historique complet sur GitHub"
+   - Intégré entre FAQ et CTA
+
+3. **Comparaison avant/après** (before-after.tsx) :
+   - Carte avec deux colonnes (Avant / Après) séparées par une flèche
+   - 5 métriques comparées : Score, LCP, CLS, TBT, Poids
+   - Indicateurs de tendance (TrendingUp/TrendingDown) colorés vert/rouge
+   - Pourcentage de variation
+   - Logique inversée pour les métriques "plus petit = mieux" (LCP, CLS, TBT, Poids)
+   - Ligne "Bilan" résumant l'évolution du score
+   - Intégré dans le dashboard (après le graphique de latence par région)
+   - VLM : deux colonnes Avant/Après avec dates, flèche, métriques + tendances (8/10)
+
+Améliorations de style :
+- Règle CSS globale `section[id] { scroll-margin-top: 5rem; }` pour un scroll propre
+  sous la navbar sticky lors de la navigation par ancre
+- Section changelog : scroll-mt-20 individuel (redondant avec la règle globale, sans conflit)
+
+Structure de la page mise à jour (17 sections) :
+Hero → Onboarding → StatsBanner → Features → SpeedTest → Dashboard → BudgetCalculator
+→ Benefits → Integrations → Achievements → Pricing → Leaderboard → Testimonials
+→ Newsletter → FAQ → **Changelog** → CTA → Footer
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200, aucune erreur runtime
+- ✅ Waterfall : 12 ressources triées, barres animées, légende, durée totale (DOM + VLM)
+- ✅ Changelog : 5 entrées timeline, types différenciés, dates, titres (DOM + VLM)
+- ✅ Before/After : heading + 2 colonnes Avant/Après + métriques + tendances + Bilan (DOM + VLM)
+- ✅ scroll-margin-top global : navigation par ancre propre sous navbar
+- ✅ 17 sections rendues
+
+Stage Summary:
+- 3 nouvelles fonctionnalités (waterfall cascade, changelog timeline, comparaison avant/après)
+- 1 amélioration de style globale (scroll-margin-top pour sections ancrées)
+- 17 sections sur la page, toutes fonctionnelles
+- Toutes vérifications QA passent : lint 0, serveur 200, VLM confirme 8/10
+
+Risques / Prochaines étapes recommandées :
+- Export PDF des rapports (skill pdf)
+- Page de connexion authentifiée (NextAuth) avec dashboard personnel
+- Webhooks réels (déploiement Vercel/GitHub)
+- Notifications email d'alerte (résend)
+- API publique pour CI/CD
+- Page de statut dédiée (/status) avec historique des incidents
+- Documentation interactive intégrée
+- Mode démo guidée (onboarding interactif pas à pas)
+- Alertes personnalisées avec seuils configurables
+- Export CSV/Excel de l'historique de monitoring

@@ -20,6 +20,7 @@ import {
 import { Activity, Globe, TrendingUp, TrendingDown, Loader2, Gauge, Clock, Wifi, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { BeforeAfter } from './before-after'
 import { cn } from '@/lib/utils'
 
 interface HistoryPoint {
@@ -362,6 +363,28 @@ export function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Comparaison avant / après */}
+        {history.length >= 2 && (
+          <BeforeAfter
+            current={{
+              date: history[history.length - 1].date,
+              performance: history[history.length - 1].score,
+              lcp: history[history.length - 1].lcp,
+              cls: history[history.length - 1].cls,
+              tbt: history[history.length - 1].tbt ?? 200,
+              totalWeight: Math.round(1200 + (100 - history[history.length - 1].score) * 15),
+            }}
+            previous={{
+              date: history[0].date,
+              performance: history[0].score,
+              lcp: history[0].lcp,
+              cls: history[0].cls,
+              tbt: history[0].tbt ?? 300,
+              totalWeight: Math.round(1800 + (100 - history[0].score) * 15),
+            }}
+          />
+        )}
       </div>
     </section>
   )

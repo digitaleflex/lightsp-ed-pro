@@ -2,12 +2,13 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle, Share2, Download, Layers } from 'lucide-react'
+import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle, Share2, Download, Layers, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { ScoreRing } from './score-ring'
 import { ResourceBreakdown } from './resource-breakdown'
+import { WaterfallChart } from './waterfall-chart'
 import { RecentSearches } from './recent-searches'
 import { toast } from '@/hooks/use-toast'
 
@@ -28,6 +29,7 @@ interface AnalyzeResult {
   metrics: { label: string; value: string; status: 'good' | 'average' | 'poor'; hint: string }[]
   resourceBreakdown: { name: string; size: number; color: string; requests: number }[]
   regionLatency: { region: string; latency: number }[]
+  waterfall: { name: string; type: string; color: string; startTime: number; duration: number; size: number }[]
 }
 
 type Status = 'idle' | 'scanning' | 'done'
@@ -528,6 +530,17 @@ function ResultsView({
           })}
         </div>
       </div>
+
+      {/* Cascade de chargement (waterfall) */}
+      {result.waterfall && result.waterfall.length > 0 && (
+        <div className="border-t border-border/60 p-6 sm:p-8">
+          <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <Activity className="h-4 w-4 text-chart-3" />
+            Cascade de chargement des ressources
+          </h3>
+          <WaterfallChart items={result.waterfall} totalDuration={Math.round(result.si * 1000)} />
+        </div>
+      )}
 
       {/* Recommandations */}
       {result.recommendations.length > 0 && (

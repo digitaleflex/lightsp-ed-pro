@@ -123,6 +123,10 @@
   html {
     scroll-behavior: smooth;
   }
+  /* Marge de scroll pour les sections ancrées (sous la navbar sticky) */
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
 }
 
 /* Scrollbar personnalisée */

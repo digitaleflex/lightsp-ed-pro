@@ -32,6 +32,7 @@ export interface LighthouseResult {
   metrics: { label: string; value: string; status: 'good' | 'average' | 'poor'; hint: string }[]
   resourceBreakdown: { name: string; size: number; color: string; requests: number }[]
   regionLatency: { region: string; latency: number }[]
+  waterfall: { name: string; type: string; color: string; startTime: number; duration: number; size: number }[]
 }
 
 // Simule une analyse Lighthouse pour une URL donnée
@@ -219,6 +220,24 @@ export function analyzeUrl(url: string, device: 'desktop' | 'mobile' = 'desktop'
     { region: 'Amérique du Sud', latency: Math.round(baseLat * (1.4 + rng() * 0.2)) },
   ]
 
+  // Cascade de chargement des ressources (waterfall) — style Lighthouse
+  const totalDuration = Math.round(si * 1000) // durée totale en ms basée sur le Speed Index
+  const waterfall = resourceBreakdown.flatMap((r, groupIdx) => {
+    const count = Math.min(5, r.requests) // limiter à 5 req par type pour la lisibilité
+    return Array.from({ length: count }, (_, i) => {
+      const startTime = Math.round(rng() * totalDuration * 0.6)
+      const duration = Math.round(40 + rng() * 600)
+      return {
+        name: `${r.name.toLowerCase()}-${i + 1}`,
+        type: r.name,
+        color: r.color,
+        startTime,
+        duration: Math.min(duration, totalDuration - startTime),
+        size: Math.round(r.size / count * (0.5 + rng() * 0.8)),
+      }
+    })
+  }).sort((a, b) => a.startTime - b.startTime).slice(0, 12)
+
   return {
     performance: Math.max(5, Math.min(100, performance)),
     accessibility,
@@ -236,6 +255,7 @@ export function analyzeUrl(url: string, device: 'desktop' | 'mobile' = 'desktop'
     metrics,
     resourceBreakdown,
     regionLatency,
+    waterfall,
   }
 }
 
