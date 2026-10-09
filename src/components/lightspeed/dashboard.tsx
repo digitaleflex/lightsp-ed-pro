@@ -5,7 +5,10 @@ import { motion } from 'framer-motion'
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
+  Cell,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -14,7 +17,7 @@ import {
   YAxis,
   Legend,
 } from 'recharts'
-import { Activity, Globe, TrendingUp, TrendingDown, Loader2, Gauge } from 'lucide-react'
+import { Activity, Globe, TrendingUp, TrendingDown, Loader2, Gauge, Clock, Wifi, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -96,6 +99,15 @@ export function Dashboard() {
   // Stats Core Web Vitals actuelles
   const last = history[history.length - 1] ?? { lcp: 0, cls: 0, fcp: 0, tbt: 0 }
 
+  // Données de latence par région (basées sur le score du site)
+  const baseTtfb = last.lcp > 0 ? Math.round(last.lcp * 100 + 80) : 250
+  const regionLatencyData = [
+    { region: 'Europe', latency: baseTtfb },
+    { region: 'Amérique N.', latency: Math.round(baseTtfb * 1.12) },
+    { region: 'Asie-Pac.', latency: Math.round(baseTtfb * 1.32) },
+    { region: 'Amérique S.', latency: Math.round(baseTtfb * 1.45) },
+  ]
+
   return (
     <section id="dashboard" className="relative py-20 sm:py-28">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 rounded-full bg-chart-3/5 blur-[120px]" />
@@ -150,6 +162,9 @@ export function Dashboard() {
             color={last.cls < 0.1 ? 'text-chart-2' : 'text-chart-4'}
           />
         </div>
+
+        {/* Bandeau d'uptime */}
+        <UptimeBanner score={latest} />
 
         {/* Graphiques */}
         <div className="grid gap-6 lg:grid-cols-2">
@@ -303,9 +318,118 @@ export function Dashboard() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Latence par région */}
+          <Card className="col-span-1 lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wifi className="h-5 w-5 text-chart-1" />
+                Latence par région (TTFB moyen)
+              </CardTitle>
+              <CardDescription>
+                Temps de réponse moyen du serveur selon le point de mesure
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={regionLatencyData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.5} vertical={false} />
+                    <XAxis
+                      dataKey="region"
+                      tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis tick={{ fontSize: 10, fill: 'var(--color-muted-foreground)' }} tickLine={false} axisLine={false} width={36} unit="ms" />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'var(--color-card)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 12,
+                        fontSize: 12,
+                      }}
+                      formatter={(v: number) => [`${v} ms`, 'TTFB']}
+                    />
+                    <Bar dataKey="latency" radius={[8, 8, 0, 0]} maxBarSize={64}>
+                      {regionLatencyData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.latency < 200 ? 'var(--color-chart-2)' : entry.latency < 500 ? 'var(--color-chart-4)' : 'var(--color-destructive)'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>
+  )
+}
+
+// Bandeau d'uptime
+function UptimeBanner({ score }: { score: number }) {
+  const uptime = Math.min(99.99, 99.5 + (score / 100) * 0.49)
+  const incidents = score > 80 ? 0 : score > 50 ? 1 : 2
+  const status = score > 80 ? 'operational' : score > 50 ? 'degraded' : 'outage'
+  const statusLabel = status === 'operational' ? 'Opérationnel' : status === 'degraded' ? 'Dégradé' : 'Critique'
+  const StatusIcon = status === 'operational' ? CheckCircle2 : AlertCircle
+  // Vert (primary) pour opérationnel, ambre pour dégradé, rouge pour critique
+  const statusColor = status === 'operational' ? 'text-primary bg-primary/10' : status === 'degraded' ? 'text-chart-4 bg-chart-4/10' : 'text-destructive bg-destructive/10'
+
+  // 30 derniers jours — cohérent avec "Disponibilité sur 30 jours"
+  // En cas de statut opérationnel, tous les jours sont ok (vert) sauf les incidents connus
+  const days = Array.from({ length: 30 }, (_, i) => {
+    if (status === 'operational') return { day: i, ok: true }
+    // Statut dégradé : quelques incidents récents
+    if (status === 'degraded') return { day: i, ok: i < 26 }
+    // Statut critique : plusieurs incidents
+    return { day: i, ok: i < 22 && i % 5 !== 0 }
+  })
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="mb-6 flex flex-col gap-4 overflow-hidden rounded-2xl border border-border/60 bg-card p-5 sm:flex-row sm:items-center sm:justify-between"
+    >
+      {/* Statut */}
+      <div className="flex items-center gap-3">
+        <span className={cn('flex h-10 w-10 items-center justify-center rounded-xl', statusColor)}>
+          <StatusIcon className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="flex items-center gap-2 text-sm font-semibold">
+            {statusLabel}
+            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium uppercase', statusColor)}>
+              {uptime.toFixed(2)}%
+            </span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Disponibilité sur 30 jours • {incidents} incident{incidents > 1 ? 's' : ''} détecté{incidents > 1 ? 's' : ''}
+          </p>
+        </div>
+      </div>
+
+      {/* Barre des 30 jours */}
+      <div className="flex flex-1 flex-wrap items-center gap-1 sm:justify-end">
+        {days.map((d, i) => (
+          <div
+            key={i}
+            className={cn(
+              'h-8 w-2 rounded-sm transition-colors',
+              d.ok ? 'bg-primary/70' : 'bg-destructive/70'
+            )}
+            title={`Jour -${30 - i}: ${d.ok ? 'Opérationnel' : 'Incident'}`}
+          />
+        ))}
+        <span className="ml-2 flex items-center gap-1 text-xs text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          30 derniers jours
+        </span>
+      </div>
+    </motion.div>
   )
 }
 

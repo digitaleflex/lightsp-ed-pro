@@ -2,10 +2,11 @@
 
 import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Trophy, Loader2, ArrowUp, ArrowDown, Minus, Globe } from 'lucide-react'
+import { Trophy, Loader2, ArrowUp, ArrowDown, Minus, Globe, GitCompareArrows } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ScoreRing } from './score-ring'
+import { CompareModal } from './compare-modal'
 import { toast } from '@/hooks/use-toast'
 
 interface LeaderEntry {
@@ -31,6 +32,8 @@ export function Leaderboard() {
   const [loading, setLoading] = React.useState(true)
   const [category, setCategory] = React.useState<string>('Tous')
   const [selected, setSelected] = React.useState<string | null>(null)
+  const [compareOpen, setCompareOpen] = React.useState(false)
+  const [compareSite, setCompareSite] = React.useState<LeaderEntry | null>(null)
 
   async function load() {
     setLoading(true)
@@ -78,22 +81,37 @@ export function Leaderboard() {
           </p>
         </div>
 
-        {/* Filtres par catégorie */}
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCategory(c)}
-              className={cn(
-                'rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors',
-                category === c
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border/60 bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
-              )}
-            >
-              {c}
-            </button>
-          ))}
+        {/* Filtres par catégorie + bouton comparer */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCategory(c)}
+                className={cn(
+                  'rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors',
+                  category === c
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border/60 bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                )}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => {
+              setCompareSite(filtered[0] ?? null)
+              setCompareOpen(true)
+            }}
+            disabled={filtered.length < 2}
+          >
+            <GitCompareArrows className="h-4 w-4" />
+            Comparer deux sites
+          </Button>
         </div>
 
         {/* Tableau classement */}
@@ -239,7 +257,19 @@ export function Leaderboard() {
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => {
+                  setCompareSite(selectedEntry)
+                  setCompareOpen(true)
+                }}
+              >
+                <GitCompareArrows className="h-3.5 w-3.5" />
+                Comparer
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -254,6 +284,14 @@ export function Leaderboard() {
           </motion.div>
         )}
       </div>
+
+      {/* Modale de comparaison */}
+      <CompareModal
+        open={compareOpen}
+        onOpenChange={setCompareOpen}
+        sites={entries}
+        initialSite={compareSite}
+      />
     </section>
   )
 }

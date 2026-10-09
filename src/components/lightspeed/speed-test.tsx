@@ -2,11 +2,12 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle } from 'lucide-react'
+import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle, Share2, Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { ScoreRing } from './score-ring'
+import { ResourceBreakdown } from './resource-breakdown'
 import { toast } from '@/hooks/use-toast'
 
 interface AnalyzeResult {
@@ -24,6 +25,8 @@ interface AnalyzeResult {
   totalWeight: number
   recommendations: { title: string; description: string; score: number; impact: string }[]
   metrics: { label: string; value: string; status: 'good' | 'average' | 'poor'; hint: string }[]
+  resourceBreakdown: { name: string; size: number; color: string; requests: number }[]
+  regionLatency: { region: string; latency: number }[]
 }
 
 type Status = 'idle' | 'scanning' | 'done'
@@ -305,6 +308,20 @@ function ResultsView({
   region: string
   onRerun: () => void
 }) {
+  const handleShare = async () => {
+    const summary = `Lightspeed — Rapport pour ${url}\nPerformance : ${result.performance}/100\nLCP : ${result.lcp}s • TBT : ${result.tbt}ms • CLS : ${result.cls}\n${result.recommendations.length} recommandations d'optimisation`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `Rapport Lightspeed — ${url}`, text: summary })
+      } else {
+        await navigator.clipboard.writeText(summary)
+        toast({ title: 'Rapport copié', description: 'Résumé copié dans le presse-papier.' })
+      }
+    } catch {
+      // Annulation par l'utilisateur, ignorer
+    }
+  }
+
   return (
     <div className="overflow-hidden rounded-3xl border border-border/60 bg-card shadow-xl">
       {/* En-tête */}
@@ -321,10 +338,16 @@ function ResultsView({
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={onRerun} className="gap-1.5">
-          <RefreshCw className="h-3.5 w-3.5" />
-          Relancer
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleShare} className="gap-1.5">
+            <Share2 className="h-3.5 w-3.5" />
+            Partager
+          </Button>
+          <Button variant="outline" size="sm" onClick={onRerun} className="gap-1.5">
+            <RefreshCw className="h-3.5 w-3.5" />
+            Relancer
+          </Button>
+        </div>
       </div>
 
       {/* Scores principaux */}
@@ -366,6 +389,45 @@ function ResultsView({
               <p className="text-xl font-bold">{result.fid}ms</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Répartition des ressources */}
+      <div className="border-t border-border/60 p-6 sm:p-8">
+        <h3 className="mb-5 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <Layers className="h-4 w-4 text-chart-3" />
+          Répartition des ressources
+        </h3>
+        <ResourceBreakdown resources={result.resourceBreakdown} />
+      </div>
+
+      {/* Latence par région */}
+      <div className="border-t border-border/60 p-6 sm:p-8">
+        <h3 className="mb-5 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <Globe className="h-4 w-4 text-chart-1" />
+          Latence par région (TTFB)
+        </h3>
+        <div className="space-y-3">
+          {result.regionLatency.map((r) => {
+            const maxLat = Math.max(...result.regionLatency.map((x) => x.latency))
+            const pct = (r.latency / maxLat) * 100
+            const good = r.latency < 200
+            const avg = r.latency < 500
+            return (
+              <div key={r.region} className="flex items-center gap-3">
+                <span className="w-32 shrink-0 text-sm font-medium">{r.region}</span>
+                <div className="h-3 flex-1 overflow-hidden rounded-full bg-muted">
+                  <motion.div
+                    className={cn('h-full rounded-full', good ? 'bg-chart-2' : avg ? 'bg-chart-4' : 'bg-destructive')}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                  />
+                </div>
+                <span className="w-16 text-right text-sm font-semibold tabular-nums">{r.latency}ms</span>
+              </div>
+            )
+          })}
         </div>
       </div>
 

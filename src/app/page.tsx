@@ -9,6 +9,7 @@ import { Dashboard } from '@/components/lightspeed/dashboard'
 import { Benefits } from '@/components/lightspeed/benefits'
 import { Pricing } from '@/components/lightspeed/pricing'
 import { Leaderboard } from '@/components/lightspeed/leaderboard'
+import { FAQ } from '@/components/lightspeed/faq'
 import { CTA } from '@/components/lightspeed/cta'
 import { Footer } from '@/components/lightspeed/footer'
 import { StatsBanner } from '@/components/lightspeed/stats-banner'
@@ -39,6 +40,7 @@ export default function Home() {
         <Benefits />
         <Pricing />
         <Leaderboard />
+        <FAQ />
         <CTA />
       </main>
       <Footer />

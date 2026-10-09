@@ -87,18 +87,18 @@ export function Hero() {
           >
             <div className="relative rounded-3xl border border-border/60 bg-card/80 p-6 shadow-2xl backdrop-blur">
               {/* En-tête carte */}
-              <div className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5">
+              <div className="mb-6 flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex shrink-0 gap-1.5">
                     <span className="h-3 w-3 rounded-full bg-destructive/70" />
                     <span className="h-3 w-3 rounded-full bg-chart-3/70" />
                     <span className="h-3 w-3 rounded-full bg-chart-2/70" />
                   </div>
-                  <span className="ml-2 font-mono text-xs text-muted-foreground">
+                  <span className="truncate font-mono text-xs text-muted-foreground">
                     lightspeed.run/rapport
                   </span>
                 </div>
-                <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
                   En direct
                 </span>

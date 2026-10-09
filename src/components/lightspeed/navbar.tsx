@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { label: 'Tableau de bord', href: '#dashboard' },
   { label: 'Tarifs', href: '#tarifs' },
   { label: 'Classement', href: '#classement' },
+  { label: 'FAQ', href: '#faq' },
 ]
 
 export function Navbar() {

@@ -89,3 +89,96 @@ Risques / Prochaines étapes recommandées :
 - Notifications email d'alerte
 - Comparaison de sites côte à côte
 - Export PDF des rapports
+
+---
+Task ID: cron-1
+Agent: Main (Z.ai Code) — Revue webDev programmée (cron 15min)
+Task: QA visuel avec agent-browser, correction de bugs et ajout de nouvelles fonctionnalités
+
+Work Log:
+- Lecture du worklog précédent : clone fonctionnel de lightspeed.run en français
+- QA visuel complet via agent-browser + analyse VLM des captures d'écran
+
+Bugs corrigés :
+- 🔴 BUG CRITIQUE : Badge "N" (indicateur dev Next.js) chevauchait le contenu (CTA, titres)
+  → Désactivé via `devIndicators: false` dans next.config.ts + redémarrage serveur
+- 🟡 Incohérence données : le donut "Répartition des ressources" affichait 1.7 Mo mais la carte "Poids total" affichait 1.5 Mo (ratios ne sommant pas à totalWeight à cause de l'arrondi)
+  → "Autres" recalculé comme reste exact : `totalWeight - (js + img + css + fonts)` pour garantir la cohérence
+- 🟡 Uptime : les barres "ok" utilisaient `bg-chart-2` (ambre au lieu de vert) et l'icône de statut opérationnel était ambre
+  → Changé pour `bg-primary` (vert) + `text-primary` pour le statut opérationnel (convention universelle vert = OK)
+  → 30 barres au lieu de 14 pour correspondre au texte "Disponibilité sur 30 jours"
+  → Logique déterministe : statut opérationnel = toutes barres vertes, dégradé = quelques incidents, critique = plusieurs
+
+Améliorations de style :
+- Cartes de fonctionnalités : padding augmenté (p-7), icônes plus grandes (h-14 w-14) avec ring, numéro discret en arrière-plan (01, 02…), animation hover -translate-y-1 + shadow
+- Hero : ajout de `gap-3` + `min-w-0`/`truncate`/`shrink-0` pour éviter la collision URL/badge "En direct"
+
+Nouvelles fonctionnalités ajoutées :
+1. **Graphique donut "Répartition des ressources"** (resource-breakdown.tsx) :
+   - Donut SVG animé avec 5 segments colorés (JavaScript/Images/CSS/Polices/Autres)
+   - Légende avec taille en Mo, nombre de requêtes, pourcentage
+   - Centre affiche le poids total
+   - Intégré aux résultats du test de vitesse
+
+2. **Section "Latence par région"** dans les résultats du test :
+   - Barres de progression horizontales animées (Framer Motion)
+   - 4 régions : Europe, Amérique du Nord, Asie-Pacifique, Amérique du Sud
+   - Code couleur selon le seuil (vert < 200ms, ambre < 500ms, rouge > 500ms)
+
+3. **Bouton "Partager"** dans l'en-tête des résultats :
+   - Utilise `navigator.share` si disponible, sinon copie dans le presse-papier
+   - Résumé du rapport (URL, score, Core Web Vitals, nb recommandations)
+
+4. **Modale "Comparer deux sites"** (compare-modal.tsx) :
+   - Overlay avec backdrop blur, fermeture au clic extérieur / Échap / bouton X
+   - Deux slots (Site A / Site B) avec anneaux de score
+   - Sélecteur de site intégré (grille de boutons)
+   - Tableau comparatif : Performance, Accessibilité, SEO, Bonnes pratiques, LCP, TBT, CLS, Poids
+   - Badge "GAGNANT" mis en évidence sur la meilleure valeur de chaque métrique
+   - Bannière résumé indiquant le site en tête
+   - Bouton "Comparer" dans le classement + dans la vue détail d'un site
+
+5. **Bandeau d'uptime** dans le dashboard :
+   - Statut (Opérationnel/Dégradé/Critique) avec icône colorée (vert/ambre/rouge)
+   - Badge de pourcentage de disponibilité
+   - 30 barres journalières vertes/rouges selon le statut
+   - Texte "Disponibilité sur 30 jours • X incidents détectés"
+
+6. **Graphique "Latence par région"** dans le dashboard :
+   - BarChart Recharts avec Cell colorées selon le seuil TTFB
+   - 4 régions, axe Y en ms
+
+7. **Section FAQ** (faq.tsx) :
+   - 8 questions/réponses en français (fonctionnement, Core Web Vitals, installation, fréquence, régions, alertes, temps réel, annulation)
+   - Accordéon Radix (premier item ouvert par défaut)
+   - Bloc "Contacter le support" en bas
+   - Lien FAQ ajouté dans la navbar
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200, aucune erreur runtime dans dev.log
+- ✅ Badge "N" : supprimé (vérifié via DOM query + VLM)
+- ✅ Donut ressources : rendu correct, couleurs distinctes, légende complète, cohérence des tailles (VLM 9/10)
+- ✅ Latence par région : 4 barres proportionnelles avec valeurs en ms (VLM 9/10)
+- ✅ Bouton Partager : présent et fonctionnel
+- ✅ Modale comparaison : 2 anneaux de score, tableau avec badges "GAGNANT", bannière résumé (VLM 9/10)
+- ✅ Bandeau uptime : icône verte, badge 99.98% vert, 30 barres vertes, texte correct (VLM pixel analysis : 0 pixel orange/ambre/rouge, tout vert)
+- ✅ FAQ : accordéon avec premier item ouvert, texte FR correct (VLM 10/10)
+- ✅ Mode sombre : toujours fonctionnel
+
+Stage Summary:
+- 1 bug critique corrigé (badge "N" supprimé)
+- 2 bugs de cohérence corrigés (tailles ressources, couleurs uptime)
+- 7 nouvelles fonctionnalités ajoutées (donut ressources, latence région, partage, comparaison, uptime, graphique latence dashboard, FAQ)
+- Améliorations de style sur cartes de fonctionnalités et hero
+- Toutes les vérifications QA passent : lint 0 erreur, serveur 200, VLM confirme la qualité visuelle (8-10/10 sur toutes les sections)
+
+Risques / Prochaines étapes recommandées :
+- Ajouter une page de connexion/dashboard authentifié (NextAuth)
+- Brancher de vraies mesures Lighthouse via un service headless (Puppeteer/Chrome)
+- Ajouter des webhooks réels (déploiement Vercel/GitHub)
+- Notifications email d'alerte (résend / nodemailer)
+- Export PDF des rapports (skill pdf)
+- Historique des tests par utilisateur (table de bord authentifié)
+- Tests A/B de variantes de pages (comparaison de versions)
+- Intégration Slack/Discord pour alertes

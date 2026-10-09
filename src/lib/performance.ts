@@ -30,6 +30,8 @@ export interface LighthouseResult {
   totalWeight: number // KB
   recommendations: { title: string; description: string; score: number; impact: string }[]
   metrics: { label: string; value: string; status: 'good' | 'average' | 'poor'; hint: string }[]
+  resourceBreakdown: { name: string; size: number; color: string; requests: number }[]
+  regionLatency: { region: string; latency: number }[]
 }
 
 // Simule une analyse Lighthouse pour une URL donnée
@@ -159,6 +161,60 @@ export function analyzeUrl(url: string, device: 'desktop' | 'mobile' = 'desktop'
     },
   ]
 
+  // Répartition des ressources par type (style Lighthouse)
+  // Les ratios ne couvrent pas 100% — "Autres" absorbe le reste pour garantir
+  // que la somme des tailles == totalWeight (cohérence avec la carte "Poids total").
+  const jsRatio = 0.28 + rng() * 0.2
+  const imgRatio = 0.2 + rng() * 0.22
+  const cssRatio = 0.07 + rng() * 0.08
+  const fontRatio = 0.04 + rng() * 0.05
+  const jsSize = Math.round(totalWeight * jsRatio)
+  const imgSize = Math.round(totalWeight * imgRatio)
+  const cssSize = Math.round(totalWeight * cssRatio)
+  const fontSize = Math.round(totalWeight * fontRatio)
+  const otherSize = Math.max(2, totalWeight - jsSize - imgSize - cssSize - fontSize)
+  const resourceBreakdown = [
+    {
+      name: 'JavaScript',
+      size: jsSize,
+      color: 'var(--color-chart-1)',
+      requests: Math.round(8 + rng() * 30),
+    },
+    {
+      name: 'Images',
+      size: imgSize,
+      color: 'var(--color-chart-2)',
+      requests: Math.round(12 + rng() * 40),
+    },
+    {
+      name: 'CSS',
+      size: cssSize,
+      color: 'var(--color-chart-3)',
+      requests: Math.round(2 + rng() * 6),
+    },
+    {
+      name: 'Polices',
+      size: fontSize,
+      color: 'var(--color-chart-4)',
+      requests: Math.round(2 + rng() * 5),
+    },
+    {
+      name: 'Autres',
+      size: otherSize,
+      color: 'var(--color-chart-5)',
+      requests: Math.round(3 + rng() * 10),
+    },
+  ]
+
+  // Latence par région (ms)
+  const baseLat = ttfb
+  const regionLatency = [
+    { region: 'Europe', latency: baseLat },
+    { region: 'Amérique du Nord', latency: Math.round(baseLat * (1.05 + rng() * 0.15)) },
+    { region: 'Asie-Pacifique', latency: Math.round(baseLat * (1.25 + rng() * 0.2)) },
+    { region: 'Amérique du Sud', latency: Math.round(baseLat * (1.4 + rng() * 0.2)) },
+  ]
+
   return {
     performance: Math.max(5, Math.min(100, performance)),
     accessibility,
@@ -174,6 +230,8 @@ export function analyzeUrl(url: string, device: 'desktop' | 'mobile' = 'desktop'
     totalWeight,
     recommendations,
     metrics,
+    resourceBreakdown,
+    regionLatency,
   }
 }
 

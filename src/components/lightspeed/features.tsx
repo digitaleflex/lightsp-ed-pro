@@ -92,7 +92,7 @@ export function Features() {
         </div>
 
         {/* Grille de fonctionnalités */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f, i) => (
             <motion.div
               key={f.title}
@@ -100,20 +100,24 @@ export function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.4, delay: (i % 4) * 0.06 }}
-              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-all hover:border-primary/40 hover:shadow-lg"
+              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-7 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5"
             >
               {/* Halo d'accent au survol */}
               <div
                 className={cn(
-                  'pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100',
+                  'pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-gradient-to-br opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100',
                   f.accent
                 )}
               />
+              {/* Numéro discret en arrière-plan */}
+              <span className="pointer-events-none absolute right-5 top-4 select-none font-mono text-5xl font-bold text-muted-foreground/[0.06] transition-colors group-hover:text-primary/10">
+                {String(i + 1).padStart(2, '0')}
+              </span>
               <div className="relative">
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <f.icon className="h-6 w-6" />
+                <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground group-hover:ring-primary/30">
+                  <f.icon className="h-7 w-7" strokeWidth={1.8} />
                 </div>
-                <h3 className="mb-2 text-base font-semibold">{f.title}</h3>
+                <h3 className="mb-2 text-base font-semibold leading-tight">{f.title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {f.description}
                 </p>
