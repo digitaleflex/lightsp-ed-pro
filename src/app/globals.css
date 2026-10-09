@@ -183,3 +183,18 @@
 @keyframes dash {
   to { stroke-dashoffset: 0; }
 }
+
+/* Effet de surbrillance au survol des boutons */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Halo glissant */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px -5px var(--primary); }
+  50% { box-shadow: 0 0 30px 0 var(--primary); }
+}
+.glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}

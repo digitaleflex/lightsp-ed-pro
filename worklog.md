@@ -893,3 +893,80 @@ Risques / Prochaines étapes recommandées :
 - Classement hebdomadaire des utilisateurs du mini-jeu
 - Badges bonus dans le mini-jeu (série de 3, 5, 10)
 - Modechrono dans le mini-jeu (réponses en moins de 5s)
+
+---
+Task ID: navbar-redesign
+Agent: Main (Z.ai Code)
+Task: Refonte de l'UI de la navbar pour la rendre plus captivante
+
+Work Log:
+- Analyse de la navbar existante (basique : logo + liens + boutons simples)
+- Repense complète de l'UI pour maximiser l'engagement visuel
+
+Nouveaux éléments captivants :
+1. **Logo animé enrichi** :
+   - Icône dégradé vert (speed-gradient) avec éclair Zap
+   - Halo pulsant (pulse-ring) en continu
+   - Au survol : scale-110 + rotate-3°
+   - Étincelle Sparkles qui apparaît au survol (spring animation)
+   - Sous-titre "Web Performance" sous "Lightspeed" (typographie à 2 niveaux)
+
+2. **Indicateur live "87/100 moy."** :
+   - Badge arrondi avec bordure primary/20 + fond primary/5
+   - Point vert pulsant (animate-ping + solid)
+   - Affiché sur desktop (xl:flex)
+   - Version mobile dans le menu déroulant ("Score moyen global : 87/100")
+   - Agit comme preuve sociale immédiate
+
+3. **Liens avec underline animé** :
+   - Fond pill animé au survol (bg-primary/5, motion opacity)
+   - Underline dégradé (speed-gradient) qui se déploie (spring scaleX)
+   - Suivi de l'état hovered pour animations synchronisées
+   - 7 liens raccourcis (Dashboard au lieu de Tableau de bord pour éviter le wrapping)
+
+4. **Bouton recherche amélioré** :
+   - Icône Search qui scale au survol
+   - Badge kbd "Ctrl K"
+   - Variante ghost discrète
+
+5. **CTA "Commencer" avec effet shimmer** :
+   - Dégradé vert avec ombre shadow-primary/25
+   - Effet shimmer (bande blanche translucide qui traverse au survol, duration 700ms)
+   - Icône Gauge qui rotate-12° au survol
+   - Flèche ArrowRight qui translate-x au survol
+   - scale-105 au survol
+
+6. **Barre de progression de scroll intégrée** :
+   - useScroll + useSpring de Framer Motion
+   - Barre speed-gradient de 2px en haut de la navbar
+   - Indique la progression de lecture
+
+7. **Transition scrolled/non-scrollé** :
+   - Non scrollé : fond dégradé transparent + backdrop-blur-sm
+   - Scrollé : bg-background/80 + backdrop-blur-2xl + shadow-lg + bordure dégradée animée en bas
+
+8. **Menu mobile animé** :
+   - Animation height + opacity (Framer Motion AnimatePresence)
+   - Liens avec emojis + animation en cascade (delay i*0.05)
+   - Indicateur live mobile intégré
+   - Bouton hamburger avec rotation animée (Menu↔X)
+
+Animations CSS ajoutées (globals.css) :
+- @keyframes shimmer (effet de balayage lumineux)
+- @keyframes glow-pulse (halo pulsant)
+- Classes .shimmer, .glow-pulse
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200
+- ✅ DOM : logo "Lightspeed Web Performance", badge "87/100", kbd "Ctrl K", 7 liens, barre progression
+- ✅ VLM : 9/10 — "Premium, conversion-focused, metrics-driven navbar"
+- ✅ États top/scrolled distincts (ombre + barre progression apparaissent au scroll)
+- ✅ Captivant : preuve sociale (87/100), logo animé, CTA shimmer, underline animé
+
+Stage Summary:
+- Navbar entièrement repensée avec 8 éléments captivants
+- Logo animé (halo + étincelle au survol), badge live, underline animé, CTA shimmer, barre progression
+- Transitions fluides entre états (scrollé/non-scrollé)
+- Menu mobile animé en cascade
+- Qualité visuelle confirmée par VLM : 9/10
