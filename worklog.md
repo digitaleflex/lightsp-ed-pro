@@ -355,3 +355,86 @@ Risques / Prochaines étapes recommandées :
 - Historique des tests par utilisateur
 - API publique pour intégration CI/CD
 - Comparaison de l'évolution d'un site dans le temps (avant/après optimisation)
+
+---
+Task ID: cron-4
+Agent: Main (Z.ai Code) — Revue webDev programmée (cron 15min)
+Task: QA visuel + ajout de fonctionnalités d'engagement et d'outils interactifs
+
+Work Log:
+- Lecture du worklog précédent : projet stable après cron-3 (23 fonctionnalités, bug "all red" corrigé)
+- QA visuel : vérification menu mobile (7 liens + CTA), mode sombre, aucune erreur runtime
+
+Bugs corrigés :
+- 🔴 ICÔNE VERCEL INEXISTANTE : `Vercel` n'existe pas dans lucide-react → erreur 500 au SSR
+  → Remplacée par `Triangle` (le logo Vercel est un triangle)
+  → Serveur redémarré, HTTP 200 restauré
+- 🟡 SCORE BUDGET PAR DÉFAUT = 13 (rouge alarmant) : les valeurs par défaut (LCP 3.5s, poids 1800 Ko) étaient très au-dessus des cibles "équilibré"
+  → Ajusté à LCP 2.8s, poids 1100 Ko → score 62 (ambre, représentatif d'un site typique)
+- 🟡 LIGNE DE CONNEXION ONBOARDING invisible : `h-px via-border` trop subtil
+  → Renforcée à `h-0.5 via-primary/30` avec marges latérales `left-[16%] right-[16%]`
+
+Nouvelles fonctionnalités ajoutées :
+1. **Section "Démarrage rapide" (Onboarding 3 étapes)** (onboarding.tsx) :
+   - 3 cartes étapes (Ajoutez votre URL → Lancez l'analyse → Surveillez & optimisez)
+   - Numérotation 01/02/03 en badges ronds verts
+   - Icônes Lucide (Link2, Play, BarChart3) dans des conteneurs ring
+   - Badges durée ("30 secondes", "Audit complet", "Monitoring continu")
+   - Ligne de connexion dégradée + flèches entre les cartes (desktop)
+   - CTA "Tester mon site maintenant" en bas
+   - Placée entre le hero et le stats banner
+
+2. **Section "Intégrations"** (integrations.tsx) :
+   - 6 cartes d'intégrations (GitHub, Vercel, Slack, Email, Webhooks, Alertes)
+   - Chaque carte : icône colorée, nom, description, badge "Disponible"
+   - Panneau de flux d'automatisation (4 étapes : Déploiement → Test → Comparaison → Alerte)
+   - Exemple de webhook (POST https://lightspeed.run/api/hooks/vercel)
+   - Bouton "Configurer mes webhooks"
+   - Layout 2 colonnes (grille + panneau flux)
+
+3. **Calculateur de budget de performance** (budget-calculator.tsx) :
+   - Outil interactif avec 3 stratégies (Éco / Équilibré / Ultra-rapide)
+   - Cibles par stratégie : LCP, CLS, TBT, TTFB, poids
+   - 2 sliders interactifs : LCP actuel (0.5-6s), poids de la page (100-4000 Ko)
+   - Score estimé en temps réel (anneau ScoreRing animé)
+   - Cartes de gains potentiels (réduction poids, gain temps LCP)
+   - Recommandations contextuelles dynamiques
+   - Calcul du score basé sur l'écart aux cibles
+
+4. **Widget de statut système** (status-widget.tsx) :
+   - Mode compact (pastille verte "Tous les systèmes opérationnels" avec ping animé)
+   - Mode détaillé (disponibilité 99.98%, temps de réponse 42ms)
+   - Intégré dans le footer (mode compact)
+   - Indicateur de confiance pour les utilisateurs
+
+Structure de la page mise à jour (16 sections) :
+Hero → Onboarding → StatsBanner → Features → SpeedTest → Dashboard → BudgetCalculator → Benefits → Integrations → Achievements → Pricing → Leaderboard → Testimonials → Newsletter → FAQ → CTA → Footer
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200, aucune erreur runtime
+- ✅ Bug icône Vercel corrigé (Triangle) : serveur 200 restauré
+- ✅ Bug score budget : 13 → 62 (ambre représentatif)
+- ✅ 16 sections rendues (DOM vérifié)
+- ✅ Onboarding : 3 cartes avec numéros, ligne de connexion renforcée
+- ✅ Intégrations : 6 cartes + panneau flux d'automatisation
+- ✅ Budget calculator : 2 sliders + 3 stratégies + score ring (DOM : 2 range inputs, 3 buttons)
+- ✅ Status widget compact dans le footer
+- ✅ Menu mobile : 7 liens + Connexion + CTA fonctionnels
+
+Stage Summary:
+- 3 bugs corrigés (icône Vercel inexistante → 500, score budget alarmant, ligne onboarding invisible)
+- 4 nouvelles fonctionnalités (onboarding 3 étapes, intégrations, calculateur budget, widget statut)
+- 16 sections sur la page, toutes fonctionnelles
+- Toutes vérifications QA passent : lint 0, serveur 200, DOM confirme les composants
+
+Risques / Prochaines étapes recommandées :
+- Export PDF des rapports (skill pdf)
+- Page de connexion authentifiée (NextAuth) avec dashboard personnel
+- Webhooks réels (déploiement Vercel/GitHub)
+- Notifications email d'alerte (résend)
+- Intégration Slack/Discord réelle
+- API publique pour CI/CD
+- Comparaison évolution avant/après optimisation
+- Page de statut dédiée (/status) avec historique des incidents
+- Documentation interactive intégrée

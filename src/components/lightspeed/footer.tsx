@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Zap, Mail, Globe, Leaf, Shield } from 'lucide-react'
+import { StatusWidget } from './status-widget'
 
 const FOOTER_LINKS = [
   {
@@ -74,6 +75,10 @@ export function Footer() {
                 <Globe className="h-4 w-4" />
                 lightspeed.run
               </a>
+            </div>
+            {/* Widget de statut système */}
+            <div className="mt-4">
+              <StatusWidget compact />
             </div>
           </div>
 
