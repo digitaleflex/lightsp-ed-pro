@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { ScoreRing } from './score-ring'
 import { ResourceBreakdown } from './resource-breakdown'
 import { CoreWebVitalsRadar } from './core-vitals-radar'
+import { IndustryComparison } from './industry-comparison'
 import { WaterfallChart } from './waterfall-chart'
 import { RecentSearches } from './recent-searches'
 import { toast } from '@/hooks/use-toast'
@@ -509,6 +510,13 @@ function ResultsView({
               { metric: 'SI', score: 100, fullMark: 100 },
               { metric: 'TTFB', score: 100, fullMark: 100 },
             ]}
+          />
+
+          {/* Comparaison à la moyenne du web */}
+          <IndustryComparison
+            performance={result.performance}
+            lcp={result.lcp}
+            weight={result.totalWeight}
           />
         </div>
       </div>

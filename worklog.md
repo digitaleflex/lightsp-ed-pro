@@ -664,3 +664,92 @@ Risques / Prochaines étapes recommandées :
 - Timeline des incidents avec annotations
 - Partage social des résultats (Twitter, LinkedIn)
 - Mode démo guidée (tour interactif pas à pas)
+
+---
+Task ID: cron-8
+Agent: Main (Z.ai Code) — Revue webDev programmée (cron 15min)
+Task: QA + ajout de fonctionnalités de benchmark sectoriel, astuces et accessibilité
+
+Work Log:
+- Lecture du worklog précédent : projet stable après cron-7 (18 sections, radar, sparklines)
+- QA : serveur HTTP 200, lint 0 erreur, aucune erreur runtime
+- 20 sections sur la page après cette phase (+2 nouvelles)
+
+Bugs corrigés :
+- 🔴 BARRE DE PROGRESSION DESIGN MANQUANTE : `ind.color.replace('text-', 'bg-')` générait des classes
+  dynamiques que Tailwind JIT ne détectait pas (bg-chart-3 jamais compilé)
+  → Ajout d'un champ `barColor` explicite dans l'interface Industry (bg-primary, bg-chart-4, etc.)
+  → Vérifié : 4 barres de progression présentes (DOM : 4 éléments bg-muted)
+- 🔴 SYMBOLE ⌘K RENDU COMME "N" : le badge kbd du bouton de recherche navbar utilisait ⌘K
+  → Remplacé par "Ctrl K" (cohérent avec le shortcut hint)
+  → Vérifié : kbd affiche "Ctrl K" (DOM confirmé)
+
+Nouvelles fonctionnalités ajoutées :
+1. **Skip link d'accessibilité** (page.tsx) :
+   - Lien "Aller au contenu" masqué par défaut (sr-only)
+   - Apparaît au focus clavier (focus:not-sr-only, position fixed, z-200)
+   - Cible le main avec id="contenu"
+   - Navigation clavier améliorée (WCAG 2.1)
+
+2. **Section Benchmark par industrie** (benchmark.tsx) :
+   - 4 cartes d'industries : Tech/SaaS (87), E-commerce (62), Médias (54), Design (91)
+   - Chaque carte : icône colorée, nom, meilleur site (Vercel/Shopify/Medium/Figma)
+   - Score moyen avec barre de progression animée (barColor explicite)
+   - Stats secondaires : LCP moyen, poids moyen
+   - Halo décoratif au survol
+   - Insight en bas : "Les sites de Design sont 47% plus rapides que l'e-commerce"
+   - Placée entre Glossaire et Pricing
+
+3. **Widget "Comparé à la moyenne du web"** (industry-comparison.tsx) :
+   - Intégré dans les résultats du test de vitesse (après le radar)
+   - 3 métriques comparées : Score, LCP, Poids
+   - Indicateurs de différence (↑/↓/=) avec couleur (vert = mieux, ambre = moins bon)
+   - Pourcentage de variation
+   - Verdict contextualisé : "X points au-dessus/en dessous de la moyenne"
+   - Logique inversée pour LCP et poids (plus bas = mieux)
+
+4. **Section Astuces & conseils** (tips-carousel.tsx) :
+   - Carrousel de 6 astuces d'optimisation (WebP/AVIF, Code-splitting, Cache CDN, Preload, Dimensions, Inline CSS)
+   - Auto-rotation toutes les 6 secondes
+   - Navigation : dots cliquables + flèches précédent/suivant + compteur "X / 6"
+   - Chaque astuce : icône colorée, badge catégorie, métrique d'impact, titre, description
+   - Animations Framer Motion (slide horizontal, AnimatePresence)
+   - Placée entre Benchmark et Pricing
+
+Structure de la page mise à jour (20 sections) :
+Hero → Onboarding → StatsBanner → Features → SpeedTest → Dashboard → BudgetCalculator
+→ Benefits → Integrations → Achievements → Glossary → **Benchmark** → **TipsCarousel**
+→ Pricing → Leaderboard → Testimonials → Newsletter → FAQ → Changelog → CTA → Footer
+
+Vérifications finales :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200, aucune erreur runtime
+- ✅ Skip link : présent (DOM : a[href="#contenu"], texte "Aller au contenu", sr-only)
+- ✅ Benchmark : 4 cartes avec barres de progression (DOM : 4 éléments bg-muted)
+- ✅ Navbar kbd : "Ctrl K" (DOM confirmé, plus de ⌘K/N)
+- ✅ Industry comparison : "COMPARÉ À LA MOYENNE DU WEB" présent dans les résultats
+- ✅ Tips carousel : 6 astuces, dots + flèches, auto-rotation
+- ✅ 20 sections rendues
+
+Stage Summary:
+- 2 bugs corrigés (barre progression Design, symbole ⌘K)
+- 4 nouvelles fonctionnalités (skip link a11y, benchmark sectoriel, comparaison industrie, carrousel astuces)
+- 20 sections sur la page, toutes fonctionnelles
+- Toutes vérifications QA passent : lint 0, serveur 200, DOM confirme
+
+Risques / Prochaines étapes recommandées :
+- Export PDF des rapports (skill pdf)
+- Page de connexion authentifiée (NextAuth) avec dashboard personnel
+- Webhooks réels (déploiement Vercel/GitHub)
+- Notifications email d'alerte (résend)
+- API publique pour CI/CD
+- Page de statut dédiée (/status) avec historique des incidents
+- Comparaison multi-sites (jusqu'à 4 en parallèle)
+- Mode hors-ligne (PWA)
+- Heatmap des Core Web Vitals par région
+- Timeline des incidents avec annotations
+- Partage social des résultats (Twitter, LinkedIn)
+- Mode démo guidée (tour interactif pas à pas)
+- Graphique de corrélation entre métriques
+- Alertes Slack/Discord en temps réel
+- Rapport de régression automatique après déploiement

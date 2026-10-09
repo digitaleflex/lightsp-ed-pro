@@ -12,6 +12,8 @@ import { BudgetCalculator } from '@/components/lightspeed/budget-calculator'
 import { Benefits } from '@/components/lightspeed/benefits'
 import { Integrations } from '@/components/lightspeed/integrations'
 import { Glossary } from '@/components/lightspeed/glossary'
+import { Benchmark } from '@/components/lightspeed/benchmark'
+import { TipsCarousel } from '@/components/lightspeed/tips-carousel'
 import { Pricing } from '@/components/lightspeed/pricing'
 import { Leaderboard } from '@/components/lightspeed/leaderboard'
 import { Testimonials } from '@/components/lightspeed/testimonials'
@@ -42,10 +44,17 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Skip link pour l'accessibilité (navigation clavier) */}
+      <a
+        href="#contenu"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground focus:shadow-lg"
+      >
+        Aller au contenu
+      </a>
       <ReadingProgress />
       <CommandPalette />
       <Navbar />
-      <main className="flex-1">
+      <main id="contenu" className="flex-1">
         <Hero />
         <Onboarding />
         <StatsBanner />
@@ -57,6 +66,8 @@ export default function Home() {
         <Integrations />
         <Achievements />
         <Glossary />
+        <Benchmark />
+        <TipsCarousel />
         <Pricing />
         <Leaderboard />
         <Testimonials />
