@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Site web surveillé
+model Website {
+  id        String   @id @default(cuid())
+  url       String   @unique
+  name      String
+  category  String   @default("Général")
+  tests     SpeedTest[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Test de performance (style Lighthouse)
+model SpeedTest {
+  id           String   @id @default(cuid())
+  websiteId    String
+  website      Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  // Score global Lighthouse (0-100)
+  performance  Int
+  accessibility Int
+  bestPractices Int
+  seo          Int
+  // Core Web Vitals
+  lcp          Float  // Largest Contentful Paint (s)
+  fid          Float  // First Input Delay (ms)
+  cls          Float  // Cumulative Layout Shift
+  fcp          Float  // First Contentful Paint (s)
+  ttfb         Float  // Time to First Byte (ms)
+  tbt          Float  // Total Blocking Time (ms)
+  si           Float  // Speed Index
+  // Métadonnées
+  device       String  @default("desktop") // desktop | mobile
+  region       String  @default("europe")  // europe | na | apac
+  // Poids des ressources (KB)
+  totalWeight  Float
+  // Date
+  createdAt    DateTime @default(now())
+
+  @@index([websiteId, createdAt])
+  @@index([createdAt])
+}
