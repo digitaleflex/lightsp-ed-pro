@@ -970,3 +970,38 @@ Stage Summary:
 - Transitions fluides entre états (scrollé/non-scrollé)
 - Menu mobile animé en cascade
 - Qualité visuelle confirmée par VLM : 9/10
+
+---
+Task ID: tour-fix
+Agent: Main (Z.ai Code)
+Task: Correction du tour guidé qui ne marchait pas bien
+
+Bugs corrigés :
+- 🔴 CLIPATH CASSÉ : le polygone clipPath mélangeait `0` (sans unité) et `px`, créant un overlay invalide
+  → Remplacé par la technique box-shadow géant (`0 0 0 9999px rgba(0,0,0,0.65)`) qui crée un vrai "trou"
+- 🔴 OVERLAY COUVRANT LE TOOLTIP : l'overlay `bg-black/60 absolute inset-0` interceptait les clics sur le tooltip
+  → Container intermédiaire avec `pointerEvents: 'none'`, tooltip avec `pointerEvents: 'auto'` et `z-30`
+- 🔴 SPOTLIGHT TROP GRAND : ciblait `#outil` (section entière 1280x788px) au lieu d'un élément précis
+  → Sélecteurs affinés : `#outil input` (64px), `#dashboard h2`, `#classement h2`, `#tarifs h2`, `#glossaire h2`
+- 🔴 TIMING DU SPOTLIGHT : `setTimeout(500)` ne suffisait pas pour le scroll smooth
+  → Suivi continu via requestAnimationFrame + mesure après stabilisation (debounce 150ms)
+  → Mesure initiale immédiate avant le scroll pour éviter le gap visuel
+
+Améliorations ajoutées :
+- Coins animés (L-shaped brackets) aux 4 coins du spotlight
+- Transition CSS fluide sur la position du spotlight (0.3s ease)
+- Bande dégradée speed-gradient en haut du tooltip
+- stopPropagation sur le tooltip pour éviter la fermeture accidentelle
+- Overlay de fallback quand pas de spotlight (pendant le scroll initial)
+- Position du tooltip calculée dynamiquement (en dessous ou au-dessus selon l'espace)
+
+Vérifications :
+- ✅ Lint : 0 erreur
+- ✅ Serveur : HTTP 200
+- ✅ Spotlight : 536x64px (taille correcte de l'input, DOM confirmé)
+- ✅ Navigation : 5 étapes navigables (Testez → Surveillez → Comparez → Choisissez → Apprenez)
+- ✅ Clic Suivant/Précédent/Terminer fonctionnels
+- ✅ Fermeture via X ou clic sur l'overlay
+- ✅ VLM : 9/10 — "spotlight + tooltip + correct positioning all present"
+- ✅ Coins animés présents (VLM confirmé)
+- ✅ Tooltip positionné à côté de l'élément ciblé (VLM confirmé)
