@@ -824,14 +824,22 @@ function AiSummary({
   const [model, setModel] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [isStreaming, setIsStreaming] = React.useState(false)
+  const [lang, setLang] = React.useState<'fr' | 'en' | 'es' | 'de'>('fr')
+  const [translations, setTranslations] = React.useState<Record<string, string>>({})
+  const [translating, setTranslating] = React.useState<string | null>(null)
+  const [summaryFr, setSummaryFr] = React.useState<string | null>(null)
 
   // Reset à chaque nouvelle analyse
   React.useEffect(() => {
     setState('idle')
     setSummary(null)
+    setSummaryFr(null)
     setModel(null)
     setError(null)
     setIsStreaming(false)
+    setLang('fr')
+    setTranslations({})
+    setTranslating(null)
   }, [speedTestId])
 
   async function generate() {
@@ -896,6 +904,7 @@ function AiSummary({
             }
           }
 
+          setSummaryFr(accumulated)
           setState('done')
           setIsStreaming(false)
           return
@@ -926,6 +935,7 @@ function AiSummary({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Génération impossible')
       setSummary(data.summary)
+      setSummaryFr(data.summary)
       setModel(data.model)
       setState('done')
     } catch (e: any) {
@@ -933,6 +943,49 @@ function AiSummary({
       setState('error')
     }
   }
+
+  async function translate(targetLang: 'en' | 'es' | 'de') {
+    if (!speedTestId || !summaryFr) return
+    setLang(targetLang)
+    setTranslating(targetLang)
+
+    // Si déjà traduit, afficher direct
+    if (translations[targetLang]) {
+      setSummary(translations[targetLang])
+      setTranslating(null)
+      return
+    }
+
+    try {
+      const res = await fetch('/api/ai-summary/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ speedTestId, lang: targetLang }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Traduction impossible')
+      setTranslations((prev) => ({ ...prev, [targetLang]: data.translation }))
+      setSummary(data.translation)
+    } catch (e: any) {
+      console.warn('[AiSummary] traduction échouée:', e?.message)
+      // Fallback : garder la version FR
+      setLang('fr')
+    } finally {
+      setTranslating(null)
+    }
+  }
+
+  function switchToFr() {
+    setLang('fr')
+    setSummary(summaryFr)
+  }
+
+  const langButtons = [
+    { code: 'fr', label: '🇫🇷 FR', active: lang === 'fr', onClick: switchToFr },
+    { code: 'en', label: '🇬🇧 EN', active: lang === 'en', onClick: () => translate('en') },
+    { code: 'es', label: '🇪🇸 ES', active: lang === 'es', onClick: () => translate('es') },
+    { code: 'de', label: '🇩🇪 DE', active: lang === 'de', onClick: () => translate('de') },
+  ]
 
   return (
     <div>
@@ -942,6 +995,25 @@ function AiSummary({
         {model && (
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium normal-case text-primary">
             {model} • quota gratuit
+          </span>
+        )}
+        {state === 'done' && summaryFr && (
+          <span className="ml-auto flex gap-1">
+            {langButtons.map((b) => (
+              <button
+                key={b.code}
+                onClick={b.onClick}
+                disabled={translating !== null && translating !== b.code}
+                className={`rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
+                  b.active
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                } ${translating === b.code ? 'animate-pulse' : ''}`}
+                title={b.code === 'fr' ? 'Français' : b.code === 'en' ? 'English' : b.code === 'es' ? 'Español' : 'Deutsch'}
+              >
+                {b.label}
+              </button>
+            ))}
           </span>
         )}
       </h3>

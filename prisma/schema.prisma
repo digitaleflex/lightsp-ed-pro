@@ -50,6 +50,8 @@ model SpeedTest {
   // Résumé IA (cache pour économiser les quotas gratuits)
   aiSummary    String?
   aiModel      String?
+  // Résumé traduit par langue (M1-3) : {"en": "...", "es": "..."}
+  aiSummaryTranslations Json?
   // Poids des ressources (KB)
   totalWeight  Float
   // Date

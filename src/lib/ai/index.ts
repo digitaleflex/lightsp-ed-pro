@@ -5,7 +5,7 @@ import { GroqProvider } from './providers/groq'
 import { GeminiProvider } from './providers/gemini'
 import { OpenRouterProvider } from './providers/openrouter'
 import { ZaiProvider } from './providers/zai'
-import { buildPrompt } from './prompts'
+import { buildMessages } from './prompts'
 import { isZaiEnabled } from '@/lib/zai'
 import { recordAICall } from './telemetry'
 
@@ -86,10 +86,13 @@ export async function tryProviders(req: ChatRequest): Promise<ChatResponse> {
 }
 
 /** Génère le résumé d'un rapport en essayant les providers configurés dans l'ordre. */
-export async function generateAiSummary(report: AiReportInput): Promise<AiResult> {
-  const prompt = buildPrompt(report)
+export async function generateAiSummary(report: AiReportInput, opts: { lang?: string } = {}): Promise<AiResult> {
+  const { system, user } = buildMessages(report, opts)
   const res = await tryProviders({
-    messages: [{ role: 'user', content: prompt }],
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
     maxTokens: 800,
     temperature: 0.3,
   })
@@ -157,11 +160,15 @@ export async function streamChat(
 
 /** Streaming du résumé d'un rapport (M1-1). */
 export async function streamAiSummary(
-  report: AiReportInput
+  report: AiReportInput,
+  opts: { lang?: string } = {}
 ): Promise<{ stream: ReadableStream<string>; provider: string; model: string }> {
-  const prompt = buildPrompt(report)
+  const { system, user } = buildMessages(report, opts)
   return streamChat({
-    messages: [{ role: 'user', content: prompt }],
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
     maxTokens: 800,
     temperature: 0.3,
   })
