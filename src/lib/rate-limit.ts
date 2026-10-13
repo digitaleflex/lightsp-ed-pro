@@ -208,6 +208,8 @@ export const RATE_POLICIES = {
   aiUrlAudit: { max: 10, windowMs: 86400_000 },       // 10/jour
   aiVideoBug: { max: 3, windowMs: 86400_000 },        // 3/jour
   aiPodcast: { max: 30, windowMs: 86400_000 },        // 30/jour
+  // Billing — anti-spam sur la création de checkout (10/h par IP)
+  checkout: { max: 10, windowMs: 3600_000 },
 } as const
 
 export type RateAction = keyof typeof RATE_POLICIES

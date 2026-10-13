@@ -2,73 +2,99 @@
 
 import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Check, Sparkles, Zap } from 'lucide-react'
+import { Check, Loader2, Sparkles, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import {
+  DEFAULT_PLANS,
+  formatXof,
+  type BillingInterval,
+  type PlanView,
+} from '@/lib/billing/catalog'
 
 const SALES_EMAIL = 'support@velocita.fr'
 
-const PLANS = [
-  {
-    name: 'Découverte',
-    price: 0,
-    period: '/mois',
-    description: 'Pour découvrir et tester la vitesse de votre site.',
-    features: [
-      'Jusqu\'à 5 sites surveillés',
-      '10 tests par mois',
-      'Appareil mobile & bureau',
-      'Audit Lighthouse',
-      'Historique 7 jours',
-      'Score Core Web Vitals',
-    ],
-    cta: 'Commencer gratuitement',
-    ctaHref: '/outil',
-    highlighted: false,
-  },
-  {
-    name: 'Pro',
-    price: 19,
-    period: '/mois',
-    description: 'Pour les équipes qui veulent rester rapides en continu.',
-    features: [
-      'Sites surveillés illimités',
-      'Tests illimités',
-      'Monitoring continu (toutes les heures)',
-      'Toutes les régions (NA, EU, APAC)',
-      'Historique 12 mois',
-      'Webhooks de déploiement',
-      'Alertes par email',
-      'Rapports PDF',
-    ],
-    cta: 'Essayer Pro 14 jours',
-    ctaHref: `mailto:${SALES_EMAIL}?subject=${encodeURIComponent('Essai Pro 14 jours — Vélocita')}`,
-    highlighted: true,
-    badge: 'Le plus populaire',
-  },
-  {
-    name: 'Entreprise',
-    price: 99,
-    period: '/mois',
-    description: 'Pour les organisations avec des besoins avancés.',
-    features: [
-      'Tout le plan Pro',
-      'Tests toutes les 5 minutes',
-      'Données utilisateurs réelles (RUM)',
-      'API & intégrations',
-      'SSO / SAML',
-      'SLA 99.9 %',
-      'Support prioritaire',
-      'Gestionnaire de compte dédié',
-    ],
-    cta: 'Contacter les ventes',
-    ctaHref: `mailto:${SALES_EMAIL}?subject=${encodeURIComponent('Plan Entreprise — Vélocita')}`,
-    highlighted: false,
-  },
-] as const
+/** Plans fallback pendant le chargement de /api/plans (client-safe, sans DB). */
+const FALLBACK_PLANS: PlanView[] = DEFAULT_PLANS.map((p) => ({
+  id: `default:${p.slug}`,
+  slug: p.slug,
+  name: p.name,
+  description: p.description,
+  priceXof: p.priceXof,
+  priceAnnualXof: p.priceAnnualXof,
+  currency: p.currency,
+  features: p.features,
+  highlighted: p.highlighted,
+  badge: p.badge,
+  ctaLabel: p.ctaLabel,
+  sortOrder: p.sortOrder,
+}))
 
 export function Pricing() {
   const [annual, setAnnual] = React.useState(false)
+  const [plans, setPlans] = React.useState<PlanView[]>(FALLBACK_PLANS)
+  const [checkoutSlug, setCheckoutSlug] = React.useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = React.useState<string | null>(null)
+
+  // Les prix viennent de la table `Plan` (éditable via l'admin) — re-fetch au
+  // montage pour refléter une édition sans rebuild. Fallback : DEFAULT_PLANS.
+  React.useEffect(() => {
+    let cancelled = false
+    fetch('/api/plans', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && Array.isArray(data?.plans) && data.plans.length > 0) {
+          setPlans(data.plans)
+        }
+      })
+      .catch(() => {
+        /* on garde le fallback */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function startCheckout(plan: PlanView) {
+    setCheckoutError(null)
+    setCheckoutSlug(plan.slug)
+    try {
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planSlug: plan.slug, interval: (annual ? 'annual' : 'monthly') as BillingInterval }),
+      })
+      const data = await res.json().catch(() => ({}))
+
+      if (res.status === 401) {
+        // Non connecté → on renvoie vers la connexion avec retour sur /tarifs
+        window.location.href = data?.redirectTo ?? '/connexion?callbackUrl=/tarifs'
+        return
+      }
+      if (!res.ok) {
+        setCheckoutError(data?.error ?? 'Paiement indisponible.')
+        return
+      }
+      if (data?.url) {
+        window.location.href = data.url
+        return
+      }
+      setCheckoutError('Réponse de paiement invalide.')
+    } catch {
+      setCheckoutError('Impossible de démarrer le paiement. Réessaie.')
+    } finally {
+      setCheckoutSlug(null)
+    }
+  }
+
+  function handleCta(plan: PlanView) {
+    if (plan.priceXof === 0) {
+      // Plan gratuit → directement vers l'outil
+      window.location.href = '/outil'
+      return
+    }
+    void startCheckout(plan)
+  }
 
   return (
     <section id="tarifs" className="relative py-20 sm:py-28">
@@ -84,7 +110,7 @@ export function Pricing() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             Choisissez le plan qui correspond à vos besoins. Sans engagement,
-            annulable à tout moment.
+            annulable à tout moment. Payez en FCFA par Mobile Money ou carte.
           </p>
         </div>
 
@@ -117,13 +143,15 @@ export function Pricing() {
         </div>
 
         {/* Plans */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {PLANS.map((p, i) => {
-            const price = annual ? Math.round(p.price * 0.8) : p.price
-            const annualTotal = Math.round(p.price * 0.8 * 12)
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {plans.map((p, i) => {
+            const price = annual ? (p.priceAnnualXof ?? p.priceXof) : p.priceXof
+            const annualTotal = (p.priceAnnualXof ?? p.priceXof) * 12
+            const isFree = p.priceXof === 0
+            const loading = checkoutSlug === p.slug
             return (
               <motion.div
-                key={p.name}
+                key={p.slug}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
@@ -139,7 +167,7 @@ export function Pricing() {
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-lg">
                       <Sparkles className="h-3 w-3" />
-                      {p.badge}
+                      {p.badge ?? 'Recommandé'}
                     </span>
                   </div>
                 )}
@@ -151,12 +179,20 @@ export function Pricing() {
 
                 <div className="mb-6 flex flex-col gap-1">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold">{price}€</span>
-                    <span className="text-sm text-muted-foreground">{p.period}</span>
+                    <span className="text-4xl font-bold">
+                      {formatXof(price)}
+                      <span className="ml-1 text-lg font-semibold">FCFA</span>
+                    </span>
+                    <span className="text-sm text-muted-foreground">/mois</span>
                   </div>
-                  {annual && p.price > 0 && (
+                  {annual && !isFree && (
                     <span className="text-xs text-muted-foreground">
-                      soit {annualTotal} € facturés une fois par an
+                      soit {formatXof(annualTotal)} FCFA facturés une fois par an
+                    </span>
+                  )}
+                  {isFree && (
+                    <span className="text-xs text-muted-foreground">
+                      Gratuit, sans carte bancaire
                     </span>
                   )}
                 </div>
@@ -164,12 +200,20 @@ export function Pricing() {
                 <Button
                   className={cn('mb-6 gap-2', p.highlighted && 'shadow-lg shadow-primary/20')}
                   variant={p.highlighted ? 'default' : 'outline'}
-                  asChild
+                  disabled={loading}
+                  onClick={() => handleCta(p)}
                 >
-                  <a href={p.ctaHref}>
-                    <Zap className="h-4 w-4" fill="currentColor" />
-                    {p.cta}
-                  </a>
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Ouverture du paiement…
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4" fill="currentColor" />
+                      {p.ctaLabel}
+                    </>
+                  )}
                 </Button>
 
                 <ul className="space-y-3">
@@ -187,10 +231,18 @@ export function Pricing() {
           })}
         </div>
 
+        {checkoutError && (
+          <p className="mt-6 text-center text-sm text-destructive">{checkoutError}</p>
+        )}
+
         {/* Note */}
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Tous les prix sont en euros, hors taxes. Sans carte bancaire pour le
-          plan Découverte.
+          Tous les prix sont en FCFA (XOF), TTC. Paiement sécurisé par Mobile Money
+          (T-Money, Moov, MTN) ou carte bancaire via FedaPay.{' '}
+          <a href={`mailto:${SALES_EMAIL}`} className="underline hover:text-foreground">
+            Une facture entreprise ? Contacte-nous
+          </a>
+          .
         </p>
       </div>
     </section>
