@@ -58,6 +58,7 @@ export async function tryProviders(req: ChatRequest): Promise<ChatResponse> {
       recordAICall({
         provider: res.provider,
         model: res.model,
+        capability: 'chat',
         ok: true,
         latencyMs: Date.now() - startedAt,
       })
@@ -67,9 +68,10 @@ export async function tryProviders(req: ChatRequest): Promise<ChatResponse> {
       recordAICall({
         provider: provider.name,
         model: '',
+        capability: 'chat',
         ok: false,
         latencyMs: Date.now() - startedAt,
-        error: message,
+        errorCode: message.slice(0, 200),
       })
       if (/absente/.test(message)) {
         errors.push(`${provider.name} : clé non configurée`)

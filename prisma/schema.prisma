@@ -6,19 +6,21 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 // Site web surveillé
 model Website {
-  id        String   @id @default(cuid())
-  url       String   @unique
+  id        String     @id @default(cuid())
+  url       String     @unique
   name      String
-  category  String   @default("Général")
+  category  String     @default("Général")
+  tenantId  String
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   tests     SpeedTest[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 // Test de performance (style Lighthouse)
@@ -31,9 +33,10 @@ model SpeedTest {
   accessibility Int
   bestPractices Int
   seo          Int
-  // Core Web Vitals
+  // Core Web Vitals (INP remplace FID depuis mars 2024 — Google)
   lcp          Float  // Largest Contentful Paint (s)
-  fid          Float  // First Input Delay (ms)
+  inp          Float? // Interaction to Next Paint (ms) — bon ≤ 200, moyen ≤ 500
+  fid          Float  // DEPRECATED : First Input Delay, miroir de inp pour compat
   cls          Float  // Cumulative Layout Shift
   fcp          Float  // First Contentful Paint (s)
   ttfb         Float  // Time to First Byte (ms)
@@ -42,6 +45,11 @@ model SpeedTest {
   // Métadonnées
   device       String  @default("desktop") // desktop | mobile
   region       String  @default("europe")  // europe | na | apac
+  // Origine de la mesure : lighthouse | pagespeed (mesures réelles) | simulated (démo)
+  source       String  @default("simulated")
+  // Résumé IA (cache pour économiser les quotas gratuits)
+  aiSummary    String?
+  aiModel      String?
   // Poids des ressources (KB)
   totalWeight  Float
   // Date
@@ -49,4 +57,96 @@ model SpeedTest {
 
   @@index([websiteId, createdAt])
   @@index([createdAt])
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  tenantId     String
+  tenant       Tenant    @relation("TenantMembers", fields: [tenantId], references: [id], onDelete: Cascade)
+  ownedTenants Tenant[]  @relation("TenantOwner")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Tenant {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  ownerId   String?
+  owner     User?      @relation("TenantOwner", fields: [ownerId], references: [id])
+  members   User[]     @relation("TenantMembers")
+  websites  Website[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+// M0-4 — Rate-limit par utilisateur (sans Redis).
+// Sliding window par (userId, action) avec expiration automatique.
+// `userId` peut être "anonymous:<ip>" si l'utilisateur n'est pas authentifié.
+model RateLimit {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String   // aiSummary | aiVision | aiAsr | aiImageGen | aiUrlAudit | ...
+  windowStart DateTime // début de la fenêtre glissante
+  count       Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, action])
+  @@index([userId, action, windowStart])
+  @@index([windowStart]) // pour le nettoyage périodique
+}
+
+// M0-5 — Observabilité des appels IA (un par appel provider).
+// Sert au dashboard admin des quotas (M7-1) et à la détection d'alerte.
+model AICall {
+  id         String   @id @default(cuid())
+  provider   String   // groq | gemini | openrouter | zai
+  model      String
+  capability String   // chat | vision | embed | asr | tts | image
+  success    Boolean
+  latencyMs  Int
+  errorCode  String?  // HTTP status ou message tronqué si échec
+  userId     String?  // optionnel (peut être anonyme)
+  createdAt  DateTime @default(now())
+
+  @@index([provider, createdAt])
+  @@index([capability, createdAt])
+  @@index([createdAt])
+}
+
+// M0-5 — Compteur agrégé quotidien par provider (quota tracking).
+// `day` est normalisé à minuit UTC pour garantir l'agrégation propre.
+model AIDailyUsage {
+  id       String   @id @default(cuid())
+  provider String
+  day      DateTime // minuit UTC du jour
+  count    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, day])
+  @@index([day])
+}
+
+// M0-5 — Quotas connus par provider (documentation + alerting).
+// Volontairement SANS relation avec AICall : c'est une constante de config,
+// pas une donnée transactionnelle. Modifiable via script ou dashboard admin.
+model AIQuota {
+  id           String   @id @default(cuid())
+  provider     String   @unique
+  // Quota gratuit documenté (0 = pas de limite connue)
+  requestsPerDay   Int?
+  requestsPerMinute Int?
+  tokensPerDay     Int?
+  notes        String?  // "Gratuit jusqu'à X, puis payant"
+  updatedAt    DateTime @updatedAt
 }

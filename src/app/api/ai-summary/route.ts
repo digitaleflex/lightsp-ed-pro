@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { generateAiSummary, configuredProviders } from '@/lib/ai'
 import { isEnabled } from '@/lib/feature-flags'
+import { RATE_POLICIES, checkRate } from '@/lib/rate-limit'
 
 // POST { speedTestId } → résumé IA (cache DB, quotas gratuits économisés)
 export async function POST(req: NextRequest) {
@@ -9,6 +10,23 @@ export async function POST(req: NextRequest) {
     // Feature flag M0-3 : permet de couper le résumé IA sans redéployer (ex: quota payant)
     if (!isEnabled('aiSummary')) {
       return NextResponse.json({ error: 'Fonctionnalité IA désactivée' }, { status: 503 })
+    }
+
+    // Rate-limit M0-4 : protège les quotas gratuits Groq/Gemini
+    const policy = RATE_POLICIES.aiSummary
+    const rate = await checkRate(req, 'aiSummary', policy.max, policy.windowMs)
+    if (!rate.ok) {
+      return NextResponse.json(
+        { error: 'Trop de requêtes — réessaie plus tard', retryAfterSec: rate.retryAfterSec },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rate.retryAfterSec),
+            'X-RateLimit-Limit': String(policy.max),
+            'X-RateLimit-Remaining': '0',
+          },
+        }
+      )
     }
 
     const body = await req.json()
