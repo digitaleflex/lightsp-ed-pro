@@ -1,0 +1,13 @@
+# Exemple de configuration pour le SDK Z.ai (z-ai-web-dev-sdk).
+# Copier vers .z-ai-config (fichier réel NON versionné, ignoré par .gitignore) puis remplir :
+#   cp .z-ai-config.example .z-ai-config   (Windows : Copy-Item)
+#
+# La clé peut aussi être fournie via la variable d'environnement ZAI_API_KEY (prioritaire,
+# recommandé en prod). Le SDK z-ai-web-dev-sdk lit ce fichier .z-ai-config.
+# Doc SDK : https://www.npmjs.com/package/z-ai-web-dev-sdk
+#
+# ⚠️ Retirer toutes les lignes de commentaire (#) avant de copier : le fichier réel doit être du JSON strict.
+{
+  "baseUrl": "https://api.z.ai",
+  "apiKey": "${ZAI_API_KEY}"
+}
