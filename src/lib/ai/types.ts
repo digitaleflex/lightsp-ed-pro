@@ -14,6 +14,8 @@ export interface ChatRequest {
   messages: ChatMessage[]
   maxTokens?: number
   temperature?: number
+  /** Si true, le provider renvoie un ReadableStream de chunks texte (SSE). */
+  stream?: boolean
 }
 
 export interface ChatResponse {
@@ -26,6 +28,8 @@ export interface AIProvider {
   name: 'groq' | 'gemini' | 'openrouter' | 'zai'
   capabilities: AICapability[]
   chat(req: ChatRequest): Promise<ChatResponse>
+  /** Streaming : émet les chunks texte au fur et à mesure. Optionnel. */
+  chatStream?(req: Omit<ChatRequest, 'stream'>): Promise<ReadableStream<string>>
 }
 
 // ─── Rapport d'audit (API publique historique) ────────────────────────────────

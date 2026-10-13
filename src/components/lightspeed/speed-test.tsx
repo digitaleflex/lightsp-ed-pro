@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle, Download, Layers, Activity } from 'lucide-react'
+import { Globe, Loader2, Gauge, Smartphone, Monitor, Zap, RefreshCw, Check, AlertTriangle, XCircle, Download, Layers, Activity, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -26,13 +26,25 @@ interface AnalyzeResult {
   cls: number
   si: number
   ttfb: number
-  fid: number
+  inp: number
+  /** @deprecated miroir de inp */
+  fid?: number
   totalWeight: number
   recommendations: { title: string; description: string; score: number; impact: string }[]
   metrics: { label: string; value: string; status: 'good' | 'average' | 'poor'; hint: string }[]
   resourceBreakdown: { name: string; size: number; color: string; requests: number }[]
   regionLatency: { region: string; latency: number }[]
   waterfall: { name: string; type: string; color: string; startTime: number; duration: number; size: number }[]
+  /** Origine de la mesure : lighthouse | pagespeed (réelles) | simulated (démo) */
+  source?: string
+  measuredAt?: string
+  note?: string
+}
+
+const SOURCE_BADGE: Record<string, { label: string; className: string }> = {
+  lighthouse: { label: 'Mesure réelle — Lighthouse', className: 'bg-chart-2/15 text-chart-2 border-chart-2/30' },
+  pagespeed: { label: 'Mesure réelle — PageSpeed Insights', className: 'bg-chart-2/15 text-chart-2 border-chart-2/30' },
+  simulated: { label: 'Simulation — non mesuré', className: 'bg-amber-500/15 text-amber-600 border-amber-500/30' },
 }
 
 type Status = 'idle' | 'scanning' | 'done'
@@ -64,16 +76,78 @@ export function SpeedTest() {
   const [result, setResult] = React.useState<AnalyzeResult | null>(null)
   const [stepIdx, setStepIdx] = React.useState(0)
   const [analyzedUrl, setAnalyzedUrl] = React.useState('')
+  const [speedTestId, setSpeedTestId] = React.useState<string | null>(null)
+  const [urlError, setUrlError] = React.useState<string | null>(null)
+  const [scanError, setScanError] = React.useState<string | null>(null)
+  const abortRef = React.useRef<AbortController | null>(null)
+
+  /** Validation locale : format, protocole, longueur. Retourne l'URL normalisée ou null. */
+  function validateUrl(raw: string): string | null {
+    const trimmed = raw.trim()
+    if (!trimmed) {
+      setUrlError('Saisissez une URL à analyser, par exemple exemple.com.')
+      return null
+    }
+    if (trimmed.length > 2048) {
+      setUrlError('Cette URL est trop longue (2048 caractères max).')
+      return null
+    }
+    if (/[\s<>"]/.test(trimmed)) {
+      setUrlError('Cette URL contient des caractères invalides (espaces, <, >, ").')
+      return null
+    }
+    const withProto = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+    try {
+      const parsed = new URL(withProto)
+      if (!parsed.hostname.includes('.')) {
+        setUrlError(`« ${trimmed} » ne ressemble pas à un nom de domaine (ex. exemple.com).`)
+        return null
+      }
+      setUrlError(null)
+      return withProto
+    } catch {
+      setUrlError(`« ${trimmed} » n'est pas une URL valide. Vérifiez l'orthographe (ex. exemple.com).`)
+      return null
+    }
+  }
+
+  /** Traduit une erreur technique en message actionnable. */
+  function explainError(e: any, resStatus?: number): string {
+    if (e?.name === 'AbortError') return 'ANNULÉE'
+    const msg = String(e?.message ?? '')
+    if (!navigator.onLine || /failed to fetch|networkerror|load failed/i.test(msg)) {
+      return "Impossible de joindre le serveur d'analyse. Vérifiez votre connexion puis réessayez."
+    }
+    if (resStatus === 400 || /URL (requise|invalide)/i.test(msg)) {
+      return `${msg || 'URL invalide.'} Vérifiez l'orthographe du domaine.`
+    }
+    if (resStatus === 429 || /trop de requêtes|rate limit/i.test(msg)) {
+      return 'Trop d’analyses en peu de temps. Patientez une minute puis réessayez.'
+    }
+    if (resStatus === 504 || /timeout|délai|dépassé/i.test(msg)) {
+      return "L'analyse a pris trop de temps (site lent ou injoignable). Réessayez ou testez la version mobile."
+    }
+    if (resStatus && resStatus >= 500) {
+      return "Le service d'analyse rencontre un problème. Réessayez dans un instant ou consultez la page Statut."
+    }
+    return msg || "Impossible d'analyser cette URL pour le moment. Réessayez."
+  }
+
+  function cancelScan() {
+    abortRef.current?.abort()
+    abortRef.current = null
+  }
 
   async function runAnalysis(targetUrl?: string) {
-    const finalUrl = (targetUrl ?? url).trim()
-    if (!finalUrl) {
-      toast({ title: 'URL requise', description: 'Saisissez une URL à analyser.', variant: 'destructive' })
-      return
-    }
+    const finalUrl = validateUrl(targetUrl ?? url)
+    if (!finalUrl) return
     setStatus('scanning')
     setResult(null)
+    setScanError(null)
     setStepIdx(0)
+
+    const controller = new AbortController()
+    abortRef.current = controller
 
     const interval = setInterval(() => {
       setStepIdx((p) => Math.min(p + 1, SCAN_STEPS.length - 1))
@@ -84,29 +158,34 @@ export function SpeedTest() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: finalUrl, device, region }),
+        signal: controller.signal,
       })
       const data = await res.json()
       clearInterval(interval)
 
       if (!res.ok || data.error) {
-        throw new Error(data.error || 'Analyse impossible')
+        throw Object.assign(new Error(data.error || 'Analyse impossible'), { resStatus: res.status })
       }
 
       setResult(data.result)
       setAnalyzedUrl(finalUrl)
+      setSpeedTestId(data.speedTestId ?? null)
       setStatus('done')
       toast({
         title: 'Analyse terminée',
-        description: `Score de performance : ${data.result.performance}/100`,
+        description: `Score de performance : ${data.result.performance}/100 — site indexé automatiquement et suivi par la surveillance périodique`,
       })
     } catch (e: any) {
       clearInterval(interval)
       setStatus('idle')
-      toast({
-        title: 'Erreur',
-        description: e.message || 'Impossible d\'analyser cette URL.',
-        variant: 'destructive',
-      })
+      const explanation = explainError(e, e?.resStatus)
+      if (explanation === 'ANNULÉE') {
+        toast({ title: 'Analyse annulée', description: 'Aucune donnée n’a été enregistrée.' })
+      } else {
+        setScanError(explanation)
+      }
+    } finally {
+      abortRef.current = null
     }
   }
 
@@ -136,12 +215,19 @@ export function SpeedTest() {
                 <Globe className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="text"
+                  inputMode="url"
+                  autoComplete="url"
                   placeholder="exemple.com"
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
+                  onChange={(e) => {
+                    setUrl(e.target.value)
+                    if (urlError) setUrlError(null)
+                  }}
                   onKeyDown={(e) => e.key === 'Enter' && runAnalysis()}
-                  className="h-12 pl-11 text-base"
+                  className={cn('h-12 pl-11 text-base', urlError && 'border-destructive focus-visible:ring-destructive/30')}
                   disabled={status === 'scanning'}
+                  aria-invalid={urlError ? true : undefined}
+                  aria-describedby={urlError ? 'outil-url-erreur' : undefined}
                 />
               </div>
               <Button
@@ -163,6 +249,31 @@ export function SpeedTest() {
                 )}
               </Button>
             </div>
+
+            {/* Erreur de saisie inline */}
+            {urlError && (
+              <p id="outil-url-erreur" role="alert" className="flex items-start gap-1.5 text-sm text-destructive">
+                <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                {urlError}
+              </p>
+            )}
+
+            {/* Erreur d'analyse avec action */}
+            {scanError && status === 'idle' && (
+              <div role="alert" className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 sm:flex-row sm:items-center">
+                <XCircle className="h-5 w-5 shrink-0 text-destructive" />
+                <p className="flex-1 text-sm">{scanError}</p>
+                <div className="flex shrink-0 gap-2">
+                  <Button size="sm" variant="outline" onClick={() => runAnalysis()}>
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Réessayer
+                  </Button>
+                  <Button size="sm" variant="ghost" asChild>
+                    <a href="/status">Statut</a>
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Options */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -250,7 +361,7 @@ export function SpeedTest() {
               exit={{ opacity: 0, y: -20 }}
               className="mx-auto mt-8 max-w-3xl rounded-3xl border border-border/60 bg-card p-8"
             >
-              <ScanningState stepIdx={stepIdx} steps={SCAN_STEPS} />
+              <ScanningState stepIdx={stepIdx} steps={SCAN_STEPS} onCancel={cancelScan} />
             </motion.div>
           )}
 
@@ -262,7 +373,7 @@ export function SpeedTest() {
               exit={{ opacity: 0, y: -20 }}
               className="mx-auto mt-8 max-w-4xl"
             >
-              <ResultsView result={result} url={analyzedUrl} device={device} region={region} onRerun={() => runAnalysis(analyzedUrl)} />
+              <ResultsView result={result} url={analyzedUrl} device={device} region={region} speedTestId={speedTestId} onRerun={() => runAnalysis(analyzedUrl)} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -271,7 +382,7 @@ export function SpeedTest() {
   )
 }
 
-function ScanningState({ stepIdx, steps }: { stepIdx: number; steps: string[] }) {
+function ScanningState({ stepIdx, steps, onCancel }: { stepIdx: number; steps: string[]; onCancel: () => void }) {
   const pct = Math.round(((stepIdx + 1) / steps.length) * 100)
   return (
     <div className="flex flex-col items-center gap-6 py-8">
@@ -300,6 +411,9 @@ function ScanningState({ stepIdx, steps }: { stepIdx: number; steps: string[] })
 
       <p className="text-sm font-medium text-foreground">
         Analyse en cours… <span className="text-muted-foreground">étape {stepIdx + 1}/{steps.length}</span>
+      </p>
+      <p className="max-w-md text-center text-xs text-muted-foreground">
+        Progression indicative — la mesure réelle peut prendre jusqu’à une minute selon le site.
       </p>
 
       {/* Barre de progression */}
@@ -335,6 +449,11 @@ function ScanningState({ stepIdx, steps }: { stepIdx: number; steps: string[] })
           </div>
         ))}
       </div>
+
+      <Button variant="outline" size="sm" onClick={onCancel} className="gap-1.5">
+        <XCircle className="h-4 w-4" />
+        Annuler l’analyse
+      </Button>
     </div>
   )
 }
@@ -344,28 +463,16 @@ function ResultsView({
   url,
   device,
   region,
+  speedTestId,
   onRerun,
 }: {
   result: AnalyzeResult
   url: string
   device: string
   region: string
+  speedTestId: string | null
   onRerun: () => void
 }) {
-  const handleShare = async () => {
-    const summary = `Lightspeed — Rapport pour ${url}\nPerformance : ${result.performance}/100\nLCP : ${result.lcp}s • TBT : ${result.tbt}ms • CLS : ${result.cls}\n${result.recommendations.length} recommandations d'optimisation`
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: `Rapport Lightspeed — ${url}`, text: summary })
-      } else {
-        await navigator.clipboard.writeText(summary)
-        toast({ title: 'Rapport copié', description: 'Résumé copié dans le presse-papier.' })
-      }
-    } catch {
-      // Annulation par l'utilisateur, ignorer
-    }
-  }
-
   const handleExport = () => {
     const report = {
       url,
@@ -385,7 +492,7 @@ function ResultsView({
         cls: result.cls,
         si: result.si,
         ttfb: result.ttfb,
-        fid: result.fid,
+        inp: result.inp,
       },
       totalWeight: result.totalWeight,
       resourceBreakdown: result.resourceBreakdown,
@@ -396,12 +503,58 @@ function ResultsView({
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
     const slug = url.replace(/^https?:\/\//, '').replace(/[^a-z0-9]/gi, '-')
-    link.download = `lightspeed-rapport-${slug}.json`
+    link.download = `velocita-rapport-${slug}.json`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(link.href)
     toast({ title: 'Rapport exporté', description: 'Le fichier JSON a été téléchargé.' })
+  }
+
+  const handleExportCSV = () => {
+    const rows: [string, string | number][] = [
+      ['url', url],
+      ['device', device],
+      ['region', region],
+      ['date', new Date().toISOString()],
+      ['performance', result.performance],
+      ['accessibility', result.accessibility],
+      ['bestPractices', result.bestPractices],
+      ['seo', result.seo],
+      ['lcp_s', result.lcp],
+      ['fcp_s', result.fcp],
+      ['tbt_ms', result.tbt],
+      ['cls', result.cls],
+      ['si_s', result.si],
+      ['ttfb_ms', result.ttfb],
+      ['inp_ms', result.inp],
+      ['totalWeight_kb', result.totalWeight],
+    ]
+    const csv = ['metrique,valeur', ...rows.map(([k, v]) => `"${String(k).replace(/"/g, '""')}","${String(v).replace(/"/g, '""')}"`)].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    const slug = url.replace(/^https?:\/\//, '').replace(/[^a-z0-9]/gi, '-')
+    link.download = `velocita-rapport-${slug}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(link.href)
+    toast({ title: 'CSV exporté', description: 'Le fichier CSV a été téléchargé.' })
+  }
+
+  const handleExportPDF = () => {
+    const slug = url.replace(/^https?:\/\//, '').replace(/\/$/, '')
+    const win = window.open('', '_blank', 'width=800,height=900')
+    if (!win) {
+      toast({ title: 'Bloqué', description: 'Autorisez les popups pour générer le PDF.', variant: 'destructive' })
+      return
+    }
+    const rows = result.metrics?.map((m) => `<tr><td>${m.label}</td><td>${m.value}</td><td>${m.hint}</td></tr>`).join('') ?? ''
+    const recos = result.recommendations.map((r) => `<li><strong>${r.title}</strong> (${r.impact}) — ${r.description}</li>`).join('')
+    win.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Rapport Vélocita — ${slug}</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111}h1{font-size:22px}table{border-collapse:collapse;width:100%;margin:16px 0}td,th{border:1px solid #ddd;padding:8px;font-size:13px}ul{font-size:13px}</style></head><body><h1>Rapport Vélocita — ${slug}</h1><p>Performance : <strong>${result.performance}/100</strong> • Accessibilité ${result.accessibility} • SEO ${result.seo} • Bonnes pratiques ${result.bestPractices}</p><p>LCP ${result.lcp}s • FCP ${result.fcp}s • TBT ${result.tbt}ms • CLS ${result.cls} • SI ${result.si}s • TTFB ${result.ttfb}ms • Poids ${(result.totalWeight / 1024).toFixed(1)} Mo • ${device} • ${region} • ${new Date().toLocaleString('fr-FR')}</p><h2>Métriques</h2><table><tr><th>Métrique</th><th>Valeur</th><th>Détail</th></tr>${rows}</table><h2>Recommandations</h2><ul>${recos}</ul><script>window.onload=()=>{window.print()}<\/script></body></html>`)
+    win.document.close()
+    toast({ title: 'PDF prêt', description: 'Utilisez "Enregistrer en PDF" dans la boîte de dialogue.' })
   }
 
   return (
@@ -418,6 +571,23 @@ function ResultsView({
               {device === 'mobile' ? 'Mobile' : 'Bureau'} • {REGIONS.find((r) => r.id === region)?.label} •{' '}
               {new Date().toLocaleString('fr-FR')}
             </p>
+            {result.source && (
+              <span
+                className={cn(
+                  'mt-1.5 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium',
+                  SOURCE_BADGE[result.source]?.className ?? 'bg-muted text-muted-foreground border-border/60'
+                )}
+                title={result.note}
+              >
+                <span
+                  className={cn(
+                    'h-1.5 w-1.5 rounded-full',
+                    result.source === 'simulated' ? 'bg-amber-500' : 'bg-chart-2'
+                  )}
+                />
+                {SOURCE_BADGE[result.source]?.label ?? result.source}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -429,7 +599,15 @@ function ResultsView({
           />
           <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5">
             <Download className="h-3.5 w-3.5" />
-            Exporter
+            JSON
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-1.5">
+            <Download className="h-3.5 w-3.5" />
+            CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1.5">
+            <Download className="h-3.5 w-3.5" />
+            PDF
           </Button>
           <Button variant="outline" size="sm" onClick={onRerun} className="gap-1.5">
             <RefreshCw className="h-3.5 w-3.5" />
@@ -475,8 +653,9 @@ function ResultsView({
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <VitalCard label="LCP" value={`${result.lcp}s`} status={result.lcp < 2.5 ? 'good' : result.lcp < 4 ? 'average' : 'poor'} hint="Largest Contentful Paint" />
-              <VitalCard label="TBT" value={`${result.tbt}ms`} status={result.tbt < 200 ? 'good' : result.tbt < 600 ? 'average' : 'poor'} hint="Total Blocking Time" />
+              <VitalCard label="INP" value={`${result.inp ?? result.fid ?? 0}ms`} status={(result.inp ?? result.fid ?? 0) <= 200 ? 'good' : (result.inp ?? result.fid ?? 0) <= 500 ? 'average' : 'poor'} hint="Interaction to Next Paint — Core Web Vital depuis 2024" />
               <VitalCard label="CLS" value={result.cls.toFixed(3)} status={result.cls < 0.1 ? 'good' : result.cls < 0.25 ? 'average' : 'poor'} hint="Cumulative Layout Shift" />
+              <VitalCard label="TBT" value={`${result.tbt}ms`} status={result.tbt < 200 ? 'good' : result.tbt < 600 ? 'average' : 'poor'} hint="Total Blocking Time — proxy lab de l'INP" />
               <VitalCard label="FCP" value={`${result.fcp}s`} status={result.fcp < 1.8 ? 'good' : result.fcp < 3 ? 'average' : 'poor'} hint="First Contentful Paint" />
               <VitalCard label="SI" value={`${result.si}s`} status={result.si < 3.4 ? 'good' : result.si < 5.8 ? 'average' : 'poor'} hint="Speed Index" />
               <VitalCard label="TTFB" value={`${result.ttfb}ms`} status={result.ttfb < 200 ? 'good' : result.ttfb < 500 ? 'average' : 'poor'} hint="Time to First Byte" />
@@ -490,8 +669,8 @@ function ResultsView({
               <p className="text-xl font-bold">{(result.totalWeight / 1024).toFixed(1)} Mo</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">First Input Delay</p>
-              <p className="text-xl font-bold">{result.fid}ms</p>
+              <p className="text-xs text-muted-foreground">Interaction to Next Paint</p>
+              <p className="text-xl font-bold">{result.inp ?? result.fid ?? 0}ms</p>
             </div>
           </div>
 
@@ -499,7 +678,7 @@ function ResultsView({
           <CoreWebVitalsRadar
             metrics={[
               { metric: 'LCP', score: Math.max(0, Math.min(100, Math.round(100 - (result.lcp / 4) * 100))), fullMark: 100 },
-              { metric: 'TBT', score: Math.max(0, Math.min(100, Math.round(100 - (result.tbt / 600) * 100))), fullMark: 100 },
+              { metric: 'INP', score: Math.max(0, Math.min(100, Math.round(100 - ((result.inp ?? result.fid ?? 0) / 500) * 100))), fullMark: 100 },
               { metric: 'CLS', score: Math.max(0, Math.min(100, Math.round(100 - (result.cls / 0.25) * 100))), fullMark: 100 },
               { metric: 'FCP', score: Math.max(0, Math.min(100, Math.round(100 - (result.fcp / 3) * 100))), fullMark: 100 },
               { metric: 'SI', score: Math.max(0, Math.min(100, Math.round(100 - (result.si / 5.8) * 100))), fullMark: 100 },
@@ -507,7 +686,7 @@ function ResultsView({
             ]}
             target={[
               { metric: 'LCP', score: 100, fullMark: 100 },
-              { metric: 'TBT', score: 100, fullMark: 100 },
+              { metric: 'INP', score: 100, fullMark: 100 },
               { metric: 'CLS', score: 100, fullMark: 100 },
               { metric: 'FCP', score: 100, fullMark: 100 },
               { metric: 'SI', score: 100, fullMark: 100 },
@@ -537,8 +716,12 @@ function ResultsView({
       <div className="border-t border-border/60 p-6 sm:p-8">
         <h3 className="mb-5 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           <Globe className="h-4 w-4 text-chart-1" />
-          Latence par région (TTFB)
+          Temps de réponse serveur (TTFB — point de mesure)
         </h3>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Valeur réellement mesurée lors de cet audit. Une mesure multi-régions nécessiterait
+          des points de mesure dans chaque région (non disponible actuellement).
+        </p>
         <div className="space-y-3">
           {result.regionLatency.map((r) => {
             const maxLat = Math.max(...result.regionLatency.map((x) => x.latency))
@@ -615,6 +798,185 @@ function ResultsView({
               </div>
             ))}
           </div>
+        </div>
+      )}
+      {/* Résumé IA (quotas gratuits, cache DB) */}
+      <div className="border-t border-border/60 p-6 sm:p-8">
+        <AiSummary result={result} url={url} device={device} speedTestId={speedTestId} />
+      </div>
+    </div>
+  )
+}
+
+function AiSummary({
+  result,
+  url,
+  device,
+  speedTestId,
+}: {
+  result: AnalyzeResult
+  url: string
+  device: string
+  speedTestId: string | null
+}) {
+  const [state, setState] = React.useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [summary, setSummary] = React.useState<string | null>(null)
+  const [model, setModel] = React.useState<string | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
+  const [isStreaming, setIsStreaming] = React.useState(false)
+
+  // Reset à chaque nouvelle analyse
+  React.useEffect(() => {
+    setState('idle')
+    setSummary(null)
+    setModel(null)
+    setError(null)
+    setIsStreaming(false)
+  }, [speedTestId])
+
+  async function generate() {
+    if (!speedTestId) {
+      setError("Analyse non enregistrée en base, relancez le test.")
+      setState('error')
+      return
+    }
+    setState('loading')
+    setError(null)
+    setIsStreaming(true)
+
+    // 1. Tenter le streaming (M1-1)
+    try {
+      const streamRes = await fetch('/api/ai-summary/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          speedTestId,
+          recommendations: result.recommendations.map((r) => ({
+            title: r.title,
+            description: r.description,
+            impact: r.impact,
+          })),
+        }),
+      })
+
+      if (streamRes.ok && streamRes.headers.get('content-type')?.includes('text/event-stream')) {
+        const reader = streamRes.body?.getReader()
+        if (reader) {
+          const decoder = new TextDecoder()
+          let buffer = ''
+          let accumulated = ''
+
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() ?? ''
+
+            for (const line of lines) {
+              const trimmed = line.trim()
+              if (!trimmed.startsWith('data:')) continue
+              const payload = trimmed.slice(5).trim()
+              if (payload === '[DONE]') continue
+              try {
+                const json = JSON.parse(payload)
+                if (json.delta) {
+                  accumulated += json.delta
+                  setSummary(accumulated)
+                }
+                if (json.done) {
+                  setModel(json.model)
+                }
+                if (json.error) {
+                  throw new Error(json.error)
+                }
+              } catch {
+                // chunk malformé : on ignore
+              }
+            }
+          }
+
+          setState('done')
+          setIsStreaming(false)
+          return
+        }
+      }
+      // Si le stream a échoué (404, 503, etc.), on bascule sur l'ancien endpoint
+      throw new Error('stream non supporté')
+    } catch (streamErr: any) {
+      // 2. Fallback : ancien endpoint JSON (M0 non-streamé)
+      console.warn('[AiSummary] stream échoué, fallback JSON:', streamErr?.message)
+      setIsStreaming(false)
+    }
+
+    // 3. Ancien endpoint JSON
+    try {
+      const res = await fetch('/api/ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          speedTestId,
+          recommendations: result.recommendations.map((r) => ({
+            title: r.title,
+            description: r.description,
+            impact: r.impact,
+          })),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Génération impossible')
+      setSummary(data.summary)
+      setModel(data.model)
+      setState('done')
+    } catch (e: any) {
+      setError(e.message || 'Impossible de générer le résumé.')
+      setState('error')
+    }
+  }
+
+  return (
+    <div>
+      <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <Sparkles className="h-4 w-4 text-primary" />
+        Résumé IA
+        {model && (
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium normal-case text-primary">
+            {model} • quota gratuit
+          </span>
+        )}
+      </h3>
+      {state === 'done' && summary ? (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-relaxed whitespace-pre-wrap">
+          {summary}
+          {isStreaming && (
+            <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-primary align-middle" />
+          )}
+        </div>
+      ) : state === 'loading' && summary ? (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-relaxed whitespace-pre-wrap">
+          {summary}
+          <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-primary align-middle" />
+        </div>
+      ) : (
+        <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-border/60 bg-background/40 p-4">
+          <p className="text-xs text-muted-foreground">
+            Analyse experte de ce rapport en français : verdict, top 3 priorités et snippet de correction.
+            Généré via Groq / Gemini / OpenRouter (offres gratuites), résultat mis en cache.
+          </p>
+          {state === 'error' && error && <p className="text-xs text-destructive">{error}</p>}
+          <Button size="sm" onClick={generate} disabled={state === 'loading'} className="gap-1.5">
+            {state === 'loading' ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Génération…
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3.5 w-3.5" />
+                Générer le résumé IA
+              </>
+            )}
+          </Button>
         </div>
       )}
     </div>
