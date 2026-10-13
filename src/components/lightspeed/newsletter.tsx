@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, Check, Loader2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,16 @@ import { toast } from '@/hooks/use-toast'
 export function Newsletter() {
   const [email, setEmail] = React.useState('')
   const [status, setStatus] = React.useState<'idle' | 'loading' | 'done'>('idle')
+  const [count, setCount] = React.useState<number | null>(null)
+
+  React.useEffect(() => {
+    fetch('/api/newsletter')
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d?.subscribers === 'number') setCount(d.subscribers)
+      })
+      .catch(() => {})
+  }, [])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -19,14 +30,25 @@ export function Newsletter() {
       return
     }
     setStatus('loading')
-    // Simulation d'envoi
-    await new Promise((r) => setTimeout(r, 900))
-    setStatus('done')
-    toast({
-      title: 'Inscription confirmée',
-      description: 'Vous recevrez nos conseils performance chaque mardi.',
-    })
-    setEmail('')
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Erreur d'inscription")
+      if (typeof data?.subscribers === 'number') setCount(data.subscribers)
+      setStatus('done')
+      toast({
+        title: 'Inscription confirmée',
+        description: 'Vous recevrez nos conseils performance chaque mardi.',
+      })
+      setEmail('')
+    } catch (err: any) {
+      setStatus('idle')
+      toast({ title: 'Erreur', description: err.message || "Impossible de s'inscrire.", variant: 'destructive' })
+    }
   }
 
   return (
@@ -74,7 +96,7 @@ export function Newsletter() {
                       </span>
                     ))}
                   </span>
-                  4 200+ développeurs abonnés
+                  {count !== null ? `${count.toLocaleString('fr-FR')} développeur${count > 1 ? 's' : ''} abonné${count > 1 ? 's' : ''}` : 'Newsletter performance'}
                 </span>
                 <span className="flex items-center gap-1">
                   <Check className="h-3.5 w-3.5 text-primary" />
@@ -139,7 +161,7 @@ export function Newsletter() {
                   </Button>
                   <p className="text-center text-[10px] text-muted-foreground">
                     En vous inscrivant, vous acceptez notre{' '}
-                    <a href="#" className="underline hover:text-foreground">politique de confidentialité</a>.
+                    <Link href="/faq" className="underline hover:text-foreground">politique de confidentialité</Link>.
                   </p>
                 </>
               )}

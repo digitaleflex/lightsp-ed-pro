@@ -1,6 +1,6 @@
 {
-  "name": "Lightspeed — Surveillance de performance web",
-  "short_name": "Lightspeed",
+  "name": "Vélocita — Surveillance de performance web",
+  "short_name": "Vélocita",
   "description": "Surveillez et optimisez les performances de vos pages web. Core Web Vitals, Lighthouse, monitoring continu.",
   "start_url": "/",
   "display": "standalone",

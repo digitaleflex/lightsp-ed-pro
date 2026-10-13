@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#083B46"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#06B6D4" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#06B6D4" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#22D3EE" font-weight="bold">LIGHTSPEED · MESURE</text>
+  <text x="76" y="252" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="bold" fill="#ffffff">Terrain</text>
+  <text x="76" y="348" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="bold" fill="#22D3EE">vs Labo</text>
+  <text x="80" y="402" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#22D3EE">CrUX, RUM et Lighthouse</text>
+  <rect x="80" y="430" width="220" height="60" rx="30" fill="#06B6D4"/>
+  <text x="190" y="471" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="bold" fill="#06333C" text-anchor="middle">p75 réel</text>
+  <!-- Graphique double courbe -->
+  <g>
+    <line x1="680" y1="160" x2="680" y2="490" stroke="#3B4670" stroke-width="8" stroke-linecap="round"/>
+    <line x1="680" y1="490" x2="1050" y2="490" stroke="#3B4670" stroke-width="8" stroke-linecap="round"/>
+    <polyline points="700,420 770,390 840,400 910,320 980,280 1030,230" fill="none" stroke="#ffffff" stroke-width="8" stroke-dasharray="20 14" opacity="0.55"/>
+    <polyline points="700,450 770,430 840,380 910,360 980,300 1030,250" fill="none" stroke="#06B6D4" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="#06B6D4">
+      <circle cx="840" cy="380" r="13"/>
+      <circle cx="980" cy="300" r="13"/>
+      <circle cx="1030" cy="250" r="15" fill="#ffffff"/>
+    </g>
+    <circle cx="740" cy="205" r="10" fill="#ffffff" opacity="0.55"/>
+    <text x="762" y="214" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#ffffff" opacity="0.75">Labo</text>
+    <circle cx="740" cy="245" r="10" fill="#06B6D4"/>
+    <text x="762" y="254" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#ffffff" opacity="0.9">Terrain</text>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#06B6D4"/>
+</svg>

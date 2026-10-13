@@ -12,6 +12,7 @@ import { BudgetCalculator } from '@/components/lightspeed/budget-calculator'
 import { Benefits } from '@/components/lightspeed/benefits'
 import { Integrations } from '@/components/lightspeed/integrations'
 import { Glossary } from '@/components/lightspeed/glossary'
+import { BlogHome } from '@/components/lightspeed/blog-home'
 import { Benchmark } from '@/components/lightspeed/benchmark'
 import { TipsCarousel } from '@/components/lightspeed/tips-carousel'
 import { SpeedGame } from '@/components/lightspeed/speed-game'
@@ -23,6 +24,7 @@ import { FAQ } from '@/components/lightspeed/faq'
 import { Newsletter } from '@/components/lightspeed/newsletter'
 import { Changelog } from '@/components/lightspeed/changelog'
 import { CTA } from '@/components/lightspeed/cta'
+import { InternalLinks } from '@/components/lightspeed/internal-links'
 import { Footer } from '@/components/lightspeed/footer'
 import { CookieConsent } from '@/components/lightspeed/cookie-consent'
 import { CommandPalette } from '@/components/lightspeed/command-palette'
@@ -36,9 +38,9 @@ export default function Home() {
     async function seed() {
       try {
         const res = await fetch('/api/seed', { method: 'GET' })
-        if (res.ok) console.log('[Lightspeed] Base initialisée')
+        if (res.ok) console.log('[Vélocita] Base initialisée')
       } catch (e) {
-        console.error('[Lightspeed] Échec du seed', e)
+        console.error('[Vélocita] Échec du seed', e)
       }
     }
     seed()
@@ -68,6 +70,7 @@ export default function Home() {
         <Integrations />
         <Achievements />
         <Glossary />
+        <BlogHome />
         <Benchmark />
         <TipsCarousel />
         <SpeedGame />
@@ -78,6 +81,8 @@ export default function Home() {
         <FAQ />
         <Changelog />
         <CTA />
+        {/* Bloc statique interne : chaque ancre a sa page dédiée */}
+        <InternalLinks />
       </main>
       <Footer />
       <ShortcutHint />

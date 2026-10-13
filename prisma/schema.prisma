@@ -73,15 +73,17 @@ model User {
 }
 
 model Tenant {
-  id        String     @id @default(cuid())
-  name      String
-  slug      String     @unique
-  ownerId   String?
-  owner     User?      @relation("TenantOwner", fields: [ownerId], references: [id])
-  members   User[]     @relation("TenantMembers")
-  websites  Website[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id           String         @id @default(cuid())
+  name         String
+  slug         String         @unique
+  ownerId      String?
+  owner        User?          @relation("TenantOwner", fields: [ownerId], references: [id])
+  members      User[]         @relation("TenantMembers")
+  websites     Website[]
+  subscription Subscription?
+  payments     Payment[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 model Subscriber {
@@ -137,6 +139,93 @@ model AIDailyUsage {
 
   @@unique([provider, day])
   @@index([day])
+}
+
+// M-BILLING — Plan tarifaire (source de vérité, éditable en 1 clic via l'admin).
+// Les prix sont en XOF (FCFA), entiers sans décimales — devise imposée par FedaPay.
+model Plan {
+  id            String   @id @default(cuid())
+  slug          String   @unique // decouverte | starter | pro | entreprise
+  name          String
+  description   String
+  // Prix mensuel en FCFA (entier)
+  priceXof      Int
+  // Prix mensuel équivalent facturé annuellement (-20%). null = pas d'offre annuelle.
+  priceAnnualXof Int?
+  currency      String   @default("XOF")
+  // Features affichées sur la pricing page, dans l'ordre
+  features      Json     // string[]
+  // Limites techniques (pas encore appliquées côté API, prêtes pour le gating)
+  maxSites      Int? // null = illimité
+  testsPerMonth Int? // null = illimité
+  retentionDays Int?
+  monitorIntervalMin Int?
+  highlighted   Boolean  @default(false)
+  badge         String?
+  ctaLabel      String
+  sortOrder     Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  subscriptions Subscription[]
+  payments       Payment[]
+
+  @@index([active, sortOrder])
+}
+
+// Abonnement actif d'un tenant (1 par tenant).
+model Subscription {
+  id           String   @id @default(cuid())
+  tenantId     String   @unique
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId       String
+  plan         Plan     @relation(fields: [planId], references: [id])
+  // active | past_due | canceled | expired
+  status       String   @default("active")
+  // monthly | annual
+  interval     String   @default("monthly")
+  provider     String   @default("fedapay")
+  // Client FedaPay réutilisable (optionnel)
+  providerCustomerId String?
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  payments Payment[]
+
+  @@index([status])
+}
+
+// Paiement ponctuel (checkout FedaPay).
+model Payment {
+  id         String  @id @default(cuid())
+  tenantId   String
+  tenant     Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId     String
+  plan       Plan    @relation(fields: [planId], references: [id])
+  subscriptionId String?
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+  provider   String  @default("fedapay")
+  // ID transaction FedaPay (renseigné dès la création de la transaction)
+  providerTransactionId String? @unique
+  // merchant_reference interne (unique) — permet de retrouver le paiement sans l'ID FedaPay
+  reference  String  @unique
+  amountXof  Int
+  currency   String  @default("XOF")
+  // monthly | annual
+  interval   String  @default("monthly")
+  // pending | approved | declined | canceled | expired | refunded
+  status     String  @default("pending")
+  // momo | card | ... (renseigné par le webhook quand disponible)
+  method     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([status, createdAt])
 }
 
 // M0-5 — Quotas connus par provider (documentation + alerting).

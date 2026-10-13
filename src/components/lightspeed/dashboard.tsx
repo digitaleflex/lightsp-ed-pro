@@ -17,11 +17,12 @@ import {
   YAxis,
   Legend,
 } from 'recharts'
-import { Activity, Globe, TrendingUp, TrendingDown, Loader2, Gauge, Clock, Wifi, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Activity, Globe, TrendingUp, TrendingDown, Gauge, Clock, Wifi, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BeforeAfter } from './before-after'
 import { ScoreHistogram } from './score-histogram'
+import { LoadingSkeleton, LoadError } from './loading-states'
 import { cn } from '@/lib/utils'
 
 interface HistoryPoint {
@@ -31,6 +32,9 @@ interface HistoryPoint {
   cls: number
   fcp?: number
   tbt?: number
+  ttfb?: number
+  /** Poids mesuré réel (octets). Absent des anciens enregistrements. */
+  totalWeight?: number
 }
 
 interface Series {
@@ -47,43 +51,67 @@ interface MonitoringData {
 export function Dashboard() {
   const [data, setData] = React.useState<MonitoringData | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [loadError, setLoadError] = React.useState(false)
   const [selectedSite, setSelectedSite] = React.useState<string | null>(null)
 
-  React.useEffect(() => {
-    async function load() {
-      try {
-        // Charger le classement pour avoir la liste des sites
-        const lbRes = await fetch('/api/leaderboard')
-        const lb = await lbRes.json()
-        const first = lb?.leaderboard?.[0]?.id
-        const target = selectedSite ?? first
-        if (target) {
-          const res = await fetch(`/api/monitoring?websiteId=${target}`)
-          const d = await res.json()
-          setData(d)
-        } else {
-          // fallback : monitoring global
-          const res = await fetch('/api/monitoring')
-          const d = await res.json()
-          setData(d)
-        }
-      } catch (e) {
-        console.error(e)
-      } finally {
-        setLoading(false)
+  const load = React.useCallback(async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      // Charger le classement pour avoir la liste des sites
+      const lbRes = await fetch('/api/leaderboard')
+      const lb = await lbRes.json()
+      const first = lb?.leaderboard?.[0]?.id
+      const target = selectedSite ?? first
+      if (target) {
+        const res = await fetch(`/api/monitoring?websiteId=${target}`)
+        const d = await res.json()
+        setData(d)
+      } else {
+        // fallback : monitoring global
+        const res = await fetch('/api/monitoring')
+        const d = await res.json()
+        setData(d)
       }
+    } catch (e) {
+      console.error(e)
+      setLoadError(true)
+    } finally {
+      setLoading(false)
     }
-    load()
   }, [selectedSite])
 
-  if (loading || !data) {
+  React.useEffect(() => {
+    load()
+  }, [load])
+
+  if (loading || loadError || !data) {
     return (
       <section id="dashboard" className="py-20 sm:py-28">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-center gap-4 py-24">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Chargement du tableau de bord…</p>
-          </div>
+          {loadError && !loading ? (
+            <LoadError
+              title="Tableau de bord indisponible"
+              message="L’historique des mesures n’a pas pu être chargé."
+              onRetry={load}
+            />
+          ) : (
+            <div className="space-y-4" role="status" aria-label="Chargement du tableau de bord">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="animate-pulse rounded-2xl border border-border/60 bg-card p-5" aria-hidden="true">
+                    <div className="mb-3 h-4 w-1/2 rounded-md bg-muted" />
+                    <div className="h-8 w-2/3 rounded-md bg-muted" />
+                  </div>
+                ))}
+              </div>
+              <div className="animate-pulse rounded-2xl border border-border/60 bg-card p-6" aria-hidden="true">
+                <div className="mb-4 h-5 w-1/3 rounded-md bg-muted" />
+                <LoadingSkeleton lines={4} />
+              </div>
+              <p className="sr-only">Chargement du tableau de bord…</p>
+            </div>
+          )}
         </div>
       </section>
     )
@@ -101,14 +129,10 @@ export function Dashboard() {
   // Stats Core Web Vitals actuelles
   const last = history[history.length - 1] ?? { lcp: 0, cls: 0, fcp: 0, tbt: 0 }
 
-  // Données de latence par région (basées sur le score du site)
-  const baseTtfb = last.lcp > 0 ? Math.round(last.lcp * 100 + 80) : 250
-  const regionLatencyData = [
-    { region: 'Europe', latency: baseTtfb },
-    { region: 'Amérique N.', latency: Math.round(baseTtfb * 1.12) },
-    { region: 'Asie-Pac.', latency: Math.round(baseTtfb * 1.32) },
-    { region: 'Amérique S.', latency: Math.round(baseTtfb * 1.45) },
-  ]
+  // Temps de réponse serveur RÉEL (TTFB mesuré à chaque audit) — pas de fausse répartition multi-régions
+  const ttfbData = history
+    .filter((h) => typeof h.ttfb === 'number')
+    .map((h) => ({ date: h.date.slice(5), ttfb: h.ttfb ?? 0 }))
 
   return (
     <section id="dashboard" className="relative py-20 sm:py-28">
@@ -326,19 +350,24 @@ export function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Wifi className="h-5 w-5 text-chart-1" />
-                Latence par région (TTFB moyen)
+                Temps de réponse serveur (TTFB mesuré)
               </CardTitle>
               <CardDescription>
-                Temps de réponse moyen du serveur selon le point de mesure
+                Historique du TTFB réellement mesuré à chaque audit — pas de répartition multi-régions inventée
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-64 w-full">
+                {ttfbData.length === 0 ? (
+                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                    Aucune mesure TTFB disponible pour l'instant
+                  </div>
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={regionLatencyData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <BarChart data={ttfbData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.5} vertical={false} />
                     <XAxis
-                      dataKey="region"
+                      dataKey="date"
                       tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }}
                       tickLine={false}
                       axisLine={false}
@@ -353,13 +382,14 @@ export function Dashboard() {
                       }}
                       formatter={(v: number) => [`${v} ms`, 'TTFB']}
                     />
-                    <Bar dataKey="latency" radius={[8, 8, 0, 0]} maxBarSize={64}>
-                      {regionLatencyData.map((entry, idx) => (
-                        <Cell key={idx} fill={entry.latency < 200 ? 'var(--color-chart-2)' : entry.latency < 500 ? 'var(--color-chart-4)' : 'var(--color-destructive)'} />
+                    <Bar dataKey="ttfb" radius={[8, 8, 0, 0]} maxBarSize={64}>
+                      {ttfbData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.ttfb < 200 ? 'var(--color-chart-2)' : entry.ttfb < 500 ? 'var(--color-chart-4)' : 'var(--color-destructive)'} />
                       ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -368,7 +398,7 @@ export function Dashboard() {
         {/* Histogramme de distribution des scores */}
         {history.length >= 3 && <ScoreHistogram history={history} />}
 
-        {/* Comparaison avant / après */}
+        {/* Comparaison avant / après (poids réels uniquement, sinon masqués) */}
         {history.length >= 2 && (
           <BeforeAfter
             current={{
@@ -377,7 +407,7 @@ export function Dashboard() {
               lcp: history[history.length - 1].lcp,
               cls: history[history.length - 1].cls,
               tbt: history[history.length - 1].tbt ?? 200,
-              totalWeight: Math.round(1200 + (100 - history[history.length - 1].score) * 15),
+              totalWeight: history[history.length - 1].totalWeight,
             }}
             previous={{
               date: history[0].date,
@@ -385,7 +415,7 @@ export function Dashboard() {
               lcp: history[0].lcp,
               cls: history[0].cls,
               tbt: history[0].tbt ?? 300,
-              totalWeight: Math.round(1800 + (100 - history[0].score) * 15),
+              totalWeight: history[0].totalWeight,
             }}
           />
         )}
@@ -427,14 +457,20 @@ function UptimeBanner({ score }: { score: number }) {
           <StatusIcon className="h-5 w-5" />
         </span>
         <div>
-          <p className="flex items-center gap-2 text-sm font-semibold">
+          <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
             {statusLabel}
             <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium uppercase', statusColor)}>
               {uptime.toFixed(2)}%
             </span>
+            <span
+              title="Estimation illustrative calculée depuis le score de performance. La surveillance de disponibilité réelle arrive bientôt."
+              className="rounded-full border border-dashed border-chart-4/50 bg-chart-4/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-chart-4"
+            >
+              Aperçu illustratif
+            </span>
           </p>
           <p className="text-xs text-muted-foreground">
-            Disponibilité sur 30 jours • {incidents} incident{incidents > 1 ? 's' : ''} détecté{incidents > 1 ? 's' : ''}
+            Disponibilité estimée depuis le score • {incidents} incident{incidents > 1 ? 's' : ''} détecté{incidents > 1 ? 's' : ''}
           </p>
         </div>
       </div>

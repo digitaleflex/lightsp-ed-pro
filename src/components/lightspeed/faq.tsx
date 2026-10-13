@@ -12,16 +12,16 @@ import { Button } from '@/components/ui/button'
 
 const FAQS = [
   {
-    q: "Comment fonctionne le test de performance Lightspeed ?",
-    a: "Lightspeed analyse votre page avec un moteur d'audit Lighthouse. Il mesure le temps de chargement, les Core Web Vitals (LCP, CLS, TBT) et génère un score de performance de 0 à 100, accompagné de recommandations d'optimisation concrètes.",
+    q: "Comment fonctionne le test de performance Vélocita ?",
+    a: "Vélocita analyse votre page avec un moteur d'audit Lighthouse. Il mesure le temps de chargement, les Core Web Vitals (LCP, CLS, TBT) et génère un score de performance de 0 à 100, accompagné de recommandations d'optimisation concrètes.",
   },
   {
     q: "Qu'est-ce que les Core Web Vitals exactement ?",
-    a: "Les Core Web Vitals sont trois métriques clés de Google qui mesurent l'expérience utilisateur : le LCP (chargement du plus grand élément), l'INP/FID (interactivité) et le CLS (stabilité visuelle). Ils font partie des facteurs de classement Google depuis 2021.",
+    a: "Les Core Web Vitals sont trois métriques clés de Google qui mesurent l'expérience utilisateur : le LCP (chargement du plus grand élément), l'INP (interactivité, qui a remplacé le FID en 2024) et le CLS (stabilité visuelle). Ils font partie des facteurs de classement Google depuis 2021.",
   },
   {
     q: "Dois-je installer un script sur mon site ?",
-    a: "Non. Lightspeed ne nécessite aucune modification de code ni l'ajout d'un script de suivi qui pourrait ralentir votre site. Vous pouvez tester n'importe quelle URL publique en quelques secondes.",
+    a: "Non. Vélocita ne nécessite aucune modification de code ni l'ajout d'un script de suivi qui pourrait ralentir votre site. Vous pouvez tester n'importe quelle URL publique en quelques secondes.",
   },
   {
     q: "À quelle fréquence mon site est-il testé ?",
@@ -29,7 +29,7 @@ const FAQS = [
   },
   {
     q: "Depuis quelles régions puis-je tester ?",
-    a: "Lightspeed dispose de points de mesure en Europe, en Amérique du Nord et en Asie-Pacifique. Les plans payants vous permettent de tester depuis toutes les régions pour comprendre la performance perçue par vos visiteurs du monde entier.",
+    a: "Chaque test est un vrai audit Lighthouse exécuté depuis le serveur Vélocita (ou via l'API Google PageSpeed Insights lorsqu'elle est configurée). Le sélecteur de région permet d'étiqueter la zone de référence de votre audience ; les points de mesure multi-régions sont prévus dans une prochaine version.",
   },
   {
     q: "Puis-je être alerté quand mon score baisse ?",
@@ -60,7 +60,7 @@ export function FAQ() {
             Questions fréquentes
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Tout ce que vous devez savoir sur Lightspeed et la surveillance de
+            Tout ce que vous devez savoir sur Vélocita et la surveillance de
             performance web.
           </p>
         </div>
@@ -109,7 +109,7 @@ export function FAQ() {
             </div>
           </div>
           <Button variant="outline" className="gap-1.5" asChild>
-            <a href="mailto:support@lightspeed.run">
+            <a href="mailto:support@velocita.fr">
               Contacter le support
             </a>
           </Button>

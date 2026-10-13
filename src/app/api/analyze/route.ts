@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { analyzeUrl } from '@/lib/performance'
+import { db, createSpeedTest } from '@/lib/db'
+import { measureUrl } from '@/lib/measure'
+import { upsertIndexedSite } from '@/lib/sites'
+import { ensureScheduler } from '@/lib/scheduler'
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,23 +25,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'URL invalide' }, { status: 400 })
     }
 
-    const result = analyzeUrl(url, device)
+    // Mesure RÉELLE (Lighthouse local / PageSpeed Insights), repli simulé explicitement marqué
+    const measurement = await measureUrl(url, device)
+    const { source, measuredAt, note, ...result } = measurement
 
-    let website = await db.website.findUnique({ where: { url } })
-    if (!website) {
-      const name = url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0]
-      website = await db.website.create({ data: { url, name, category: 'Personnalisé' } })
-    }
+    // TODO : remplacer par session auth (Better Auth / NextAuth)
+    const tenantId = body?.tenantId ?? req.headers.get('x-tenant-id') ?? 'default-tenant'
 
-    await db.speedTest.create({
-      data: {
+    // INDEXATION AUTOMATIQUE : tout site analysé est ajouté à la base (dédoublonné
+    // sur l'URL canonique : www/casse/slash) puis re-mesuré périodiquement.
+    ensureScheduler()
+    const website = await upsertIndexedSite(db, url, { tenantId })
+
+    const speedTest = await createSpeedTest({
         websiteId: website.id,
         performance: result.performance,
         accessibility: result.accessibility,
         bestPractices: result.bestPractices,
         seo: result.seo,
         lcp: result.lcp,
-        fid: result.fid,
+        inp: (result as { inp?: number }).inp ?? result.fid,
+        fid: result.fid, // DEPRECATED : miroir de inp
         cls: result.cls,
         fcp: result.fcp,
         ttfb: result.ttfb,
@@ -48,10 +54,10 @@ export async function POST(req: NextRequest) {
         totalWeight: result.totalWeight,
         device,
         region,
-      },
+        source,
     })
 
-    return NextResponse.json({ success: true, url, website, result })
+    return NextResponse.json({ success: true, url, website, speedTestId: speedTest.id, result: { ...result, source, measuredAt, note } })
   } catch (e) {
     console.error(e)
     return NextResponse.json({ error: 'Erreur lors de l\'analyse' }, { status: 500 })

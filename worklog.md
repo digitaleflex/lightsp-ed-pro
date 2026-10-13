@@ -1005,3 +1005,203 @@ Vérifications :
 - ✅ VLM : 9/10 — "spotlight + tooltip + correct positioning all present"
 - ✅ Coins animés présents (VLM confirmé)
 - ✅ Tooltip positionné à côté de l'élément ciblé (VLM confirmé)
+
+---
+Task ID: real-measurements
+Agent: Main (MiMo-V2.6-Pro)
+Task: Vérifier si les mesures du classement « Les sites les plus rapides » sont réelles, puis brancher de vraies mesures + corriger le benchmark
+
+Constat initial (audit) :
+- NON, les mesures n'étaient PAS réelles : `analyzeUrl()` (performance.ts) était un simulateur
+  pseudo-aléatoire seedé sur l'URL (« Simule une analyse Lighthouse »), le seed fabriquait
+  15 tests/site avec `Math.random()`, la tendance du classement était `Math.sin(rank)`,
+  et les moyennes du benchmark (87/62/54/91 + « 47% plus rapides ») étaient codées en dur.
+
+Mise en place de mesures RÉELLES :
+1. `src/lib/measure.ts` — chaîne de mesure réelle :
+   - PageSpeed Insights (API Google, marche sans clé, meilleure avec PSI_API_KEY)
+   - repli Lighthouse local (Chrome headless via chrome-launcher + lighthouse 13)
+   - repli simulateur TOUJOURS marqué `source: 'simulated'`
+   - `parseLhr()` : scores, CWV, waterfall réel (network-requests), répartition ressources
+     (resource-summary), recommandations = audits Lighthouse réellement en échec (traduits FR)
+   - scores de catégorie recalculés hors audits en échec technique (PROTOCOL_TIMEOUT)
+   - garde-fous : timeout 180s, chrome.kill() systématique, promesses abandonnées catchées
+2. `src/lib/jobs.ts` — job de mesure en arrière-plan (globalThis), progression + sources
+3. `/api/seed` : crée les sites puis mesure CHAQUE site en réel (plus aucune donnée fabriquée),
+   reprise automatique des sites non mesurés après redémarrage serveur
+4. `/api/analyze` + nouveau `/api/measure` : mesures réelles, `source` stockée en base
+5. `/api/monitoring` : historique = uniquement tests réels (generateMonitoringHistory supprimé)
+6. Nouveau `/api/benchmark` : moyennes par catégorie CALCULÉES depuis la base
+   (avgScore, avgLcp, avgWeight, meilleur site) + insight déduit (delta % LCP entre catégories)
+7. Prisma : colonne `SpeedTest.source` (migration `speed_test_source` appliquée)
+
+Transparence UI :
+- Leaderboard : bannière d'origine des mesures (réel/simulé/en cours), tendance réelle
+  (2 dernières mesures, plus de Math.sin), rafraîchissement auto pendant le job
+- Benchmark : plus aucun chiffre codé en dur, mention « N mesures Lighthouse réelles »
+- SpeedTest : badge « Mesure réelle — Lighthouse/PageSpeed Insights » ou « Simulation »
+- FAQ : réponse « régions » corrigée (plus de faux points de mesure)
+- /status : mention « données de démonstration » ajoutée
+
+Réglages de rapidité Lighthouse local : disableFullPageScreenshot, maxWaitForLoad 30s,
+skipAudits (full-page-screenshot, screenshot-thumbnails, third-party-summary) →
+14s au lieu de 7min sur exemple lourd (vercel.com : 416s → ~60s)
+
+Vérifications :
+- ✅ Lint : 0 erreur sur les fichiers modifiés
+- ✅ Landing 200, texte « Moyennes calculées à partir des mesures Lighthouse réelles » rendu
+- ✅ /api/benchmark : moyennes calculées (Tech 82 / Finance 65 sur 4 mesures), insight calculé
+- ✅ /api/leaderboard : meta.sources + job de mesure exposés
+- ✅ Mesures réelles confirmées en base (source=pagespeed), progression job 7/16 sans erreur
+- ✅ Reprise auto après redémarrage du serveur dev (job tué → 12 sites relancés)
+
+Stage Summary:
+- Réponse à la question : les chiffres du classement étaient entièrement simulés (preuves code)
+- Pipeline de mesure réelle opérationnel (PSI → Lighthouse local → simulé marqué)
+- Benchmark et classement calculés sur données mesurées, avec transparence sur la source
+
+---
+Task ID: audit-outils-simules
+Agent: Main (MiMo-V2.6-Pro)
+Task: Auditer les outils du système (réels vs simulés) puis corriger les 6 éléments simulés restants
+
+Audit : 9 outils réels (test, classement, benchmark, dashboard, comparaison, recherches récentes,
+newsletter, stats, utilitaires UI) — 6 éléments encore simulés.
+
+Corrections :
+1. SpeedGame : paires codées en dur supprimées → duels générés depuis /api/leaderboard
+   (scores Lighthouse réels, côtés tirés au sort, états chargement/vide)
+2. IndustryComparison : AVERAGES codés en dur ({score:72, lcp:2.7, weight:2100}) supprimés
+   → moyennes réelles via /api/benchmark (nouveau champ `overall` calculé sur toutes les mesures)
+3. Dashboard : fausse « latence par région » (multiplicateurs ×1.12/1.32/1.45) supprimée
+   → histogramme du TTFB réellement mesuré (champ `ttfb` ajouté à /api/monitoring)
+4. SpeedTest : section « Latence par région » → « TTFB — point de mesure » + explication honnête
+5. StatusWidget : badge « démo » (variante compacte) + mention « données de démonstration »
+6. BudgetCalculator : mention « Estimation indicative (modèle de calcul) — ne remplace pas une mesure »
+7. Integrations : mention « présentées à titre d'exemple — connecteurs non actifs »
+
+Vérifications :
+- ✅ Lint 0 erreur, landing 200
+- ✅ /api/benchmark : overall calculé (avgScore 61, avgLcp 2.3s, 17 sites mesurés)
+- ✅ /api/monitoring : ttfb réel dans l'historique
+- ✅ Rendu SSR confirmé : « vrais duels », « Estimation indicative », « titre d'exemple », badge « démo »
+
+---
+Task ID: auto-indexation-surveillance
+Agent: Main (MiMo-V2.6-Pro)
+Task: Indexer automatiquement tout site analysé par un utilisateur et le tester en continu
+
+Nouvelle fonctionnalité — INDEXATION AUTOMATIQUE :
+1. `src/lib/sites.ts` :
+   - `normalizeUrl()` : URL canonique (https, host minuscule sans www, sans slash final)
+     → dédoublonne www/non-www, casse, slash (un site = un seul enregistrement)
+   - `guessCategory()` : catégorie déduite du domaine (E-commerce, Finance, Design, Voyage,
+     Divertissement, Médias, SaaS, Tech — repli « Personnalisé »)
+   - `upsertIndexedSite()` : indexe ou réutilise le site (un site public déjà connu
+     d'un autre tenant est réutilisé — corrige aussi le conflit d'unique URL)
+2. `/api/analyze` : tout site analysé est automatiquement indexé (via upsertIndexedSite)
+3. `/api/measure` : mesurer une URL inconnue l'indexe dans la foulée
+
+Nouvelle fonctionnalité — SURVEILLANCE AUTOMATIQUE :
+4. `src/lib/scheduler.ts` : re-mesure périodique de TOUS les sites indexés
+   (intervalle `MONITOR_INTERVAL_MIN`, défaut 60 min) ; chaque re-mesure ajoute un test
+   réel → sparklines/tendances/historique se remplissent tout seuls
+   - saute les sites mesurés récemment, tolère les erreurs site par site
+   - ne se cumule pas avec le job de mesure initial (garde-fou d'exclusion)
+5. `src/instrumentation.ts` : démarre le surveilleur au boot du serveur
+6. `/api/monitoring` : POST = lancer une ronde maintenant (non bloquant),
+   GET = statut (intervalle, ronde en cours, résultat de la dernière ronde)
+
+UI :
+7. Leaderboard : mention « Tout site analysé est automatiquement indexé et re-mesuré
+   périodiquement » + bouton « Relancer la mesure » réel (appel /api/measure, toast score)
+8. SpeedTest : toast « site indexé automatiquement et suivi par la surveillance périodique »
+
+Vérifications :
+- ✅ Lint 0 erreur, landing 200
+- ✅ Analyse de www.wikipedia.org → indexé en https://wikipedia.org (www normalisé), mesure réelle (95)
+- ✅ Analyse de www.spotify.com → réutilise l'existant (18 sites, pas de doublon), 2e test ajouté
+- ✅ Ronde automatique : 22 → 26 tests sans intervention (sources traçables : 21 pagespeed, 1 simulated)
+- ✅ POST /api/monitoring non bloquant : {started: true, monitor:{intervalMinutes:60, roundRunning:true}}
+
+## 2026-10-12 — INP migration + restart dev
+- Issues #15 closed, #16-#20 ouvertes (CrUX, cron+alertes, RUM, opportunités+PDF, annotations+concurrents).
+- Migration 20261012134447_add_speedtest_inp appliquée (backup .backups/pre_inp_*.sql). `db push` évité (historique migrations existant).
+- blog.ts : 9 blocs excerpt/cover corrompus réparés.
+- Serveur : dev EADDRINUSE — :3000 déjà servi par start-server.js (PID 19040, démarré 15:19, code nouveau vérifié). 12/30 SpeedTest ont inp.
+
+---
+Task ID: catalogue-vitrine-50
+Agent: Main (MiMo-V2.6-Pro)
+Task: Étendre le catalogue natif de sites vitrine de 16 à 50 sites officiels
+
+Changements :
+1. `src/lib/performance.ts` : SEED_WEBSITES passe de 16 à 50 sites officiels
+   - Tech +5 (Google, Mozilla, Docker, npm, Stack Overflow)
+   - SaaS +5 (Slack, Dropbox, Zoom, Salesforce, HubSpot)
+   - E-commerce +6 (Etsy, eBay, AliExpress, Zalando, Cdiscount, Decathlon)
+   - Finance +5 (PayPal, Revolut, Wise, Binance, Boursorama)
+   - Design +4 (Dribbble, Behance, Canva, Adobe)
+   - Divertissement +4 (Twitch, YouTube, Deezer, Steam)
+   - Voyage +4 (Booking, Tripadvisor, Skyscanner, Expedia)
+   - Médias +1 (Le Monde)
+2. `src/app/api/seed/route.ts` : `syncSeedCatalog()` — indexe les nouveaux sites natifs
+   ABSENTS de la base SANS jamais réinitialiser les sites/mesures existants
+   (le POST reste destructeur, le GET est désormais incrémental)
+3. `src/lib/sites.ts` : hint catégorie Médias enrichi (wiki/pedia)
+
+Diagnostic important : plusieurs serveurs dev tournaient en parallèle (EADDRINUSE dans
+dev.log, PID multiples sur :3000) → l'un d'eux servait du code périmé (catalogue 16).
+Nettoyage : arrêt du processus obsolète, redémarrage unique de `npm run dev`.
+
+Vérifications :
+- ✅ GET /api/seed : 52 sites (50 natifs + eurinhash.com + wikipedia.org), 34 ajoutés, job lancé (34 à mesurer)
+- ✅ Log serveur : « [seed] catalogue natif synchronisé : 34 site(s) indexé(s) »
+- ✅ Surveilleur auto démarré au boot : « [monitor] surveillance automatique démarrée (toutes les 60 min) »
+- ✅ Mesures réelles en cours : tests 30 → 34 (sources: pagespeed), 0 erreur, landing 200
+- ✅ Catégories couvertes : Tech, SaaS, E-commerce, Finance, Design, Divertissement, Voyage, Médias, Personnalisé
+
+---
+Task ID: ressources-et-tests-illimites
+Agent: Main (MiMo-V2.6-Pro)
+Task: Vérifier la consommation de ressources des analyses et exposer un mode tests illimités
+
+Constat (mesures réelles de la machine) :
+- Chrome headless actifs hors test : 0 → aucun orphelin, chrome.kill() systématique en finally
+  (les 64 processus Chrome / 6,3 Go appartiennent au navigateur de l'utilisateur)
+- Node (serveur dev Next) : 3 processus, ~2 Go (mode dev ; le standalone prod consomme bien moins)
+- Pendant un test Lighthouse local : 1 Chrome headless (~300-600 Mo, 15-60 s) puis détruit
+- Mesures actuelles : PageSpeed Insights (clé PAGESPEED_API_KEY dans .env) → 0 CPU/RAM local
+- Quota PSI avec clé : 25 000 mesures/jour ; surveillance de 52 sites / 60 min = 1 248/jour ≈ 5% du quota
+
+Tests illimités open source : Lighthouse + Chrome headless (Apache 2.0) déjà branchés en repli.
+Nouvel interrupteur `MEASURE_ENGINE` dans `src/lib/measure.ts` :
+- auto (défaut) : PSI si clé, puis Lighthouse local, puis simulé (marqué)
+- lighthouse : 100% local, AUCUN QUOTA, tests illimités (limite = CPU/machine)
+- pagespeed : uniquement l'API Google
+Documenté en commentaire dans .env.
+
+Vérifications : lint 0 erreur, mesure de process propre (0 headless orphelin)
+
+---
+Task ID: rename-velocita
+Agent: Main
+Task: Renommage de la marque Lightspeed → Vélocita
+
+Work Log:
+- 62 occurrences visibles "Lightspeed" → "Vélocita" (layout, pages, blog, FAQ, footer, navbar, témoignages, aide IA, libs éditoriales)
+- URLs/emails : lightspeed.run → velocita.fr, support@velocita.fr, demo@velocita.fr, fichiers velocita-rapport-*
+- package.json → "velocita", manifest PWA, projet Studio, X-Title OpenRouter
+- Volontairement inchangés (invisibles) : dossier @/components/lightspeed/, events lightspeed:*, clés localStorage, __lightspeed*, noms conteneurs/volumes Docker (évite perte DB)
+
+Vérifications : grep 0 occurrence restante, lint 0 erreur, home 200 avec <title>Vélocita — Surveillance de performance de sites web</title>
+
+---
+Task ID: domain-choice
+Agent: Main
+Task: Choix du domaine définitif Vélocita
+
+Décision : tryvelocita.com (vérifié libre RDAP Verisign 404 le 12/10/2026, à confirmer au checkout).
+Écartés (pris) : velocita.fr (depuis 2016), velocita.com, velocita.app, velocitaweb.com.
+Alternatives libres : getvelocita.com, velocita.dev, velocita.io.
+Préprod : tryvelocita.eurinhash.com (DNS à créer, NEXT_PUBLIC_SITE_URL en prod).

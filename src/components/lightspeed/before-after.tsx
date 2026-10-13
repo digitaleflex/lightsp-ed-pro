@@ -4,6 +4,7 @@ import * as React from 'react'
 import { motion } from 'framer-motion'
 import { GitCompare, TrendingUp, TrendingDown, ArrowRight, Clock } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatWeight } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 interface Snapshot {
@@ -12,7 +13,8 @@ interface Snapshot {
   lcp: number
   cls: number
   tbt: number
-  totalWeight: number
+  /** Poids mesuré réel. Si absent (anciens enregistrements), la ligne est masquée. */
+  totalWeight?: number
 }
 
 interface BeforeAfterProps {
@@ -26,12 +28,14 @@ export function BeforeAfter({ current, previous }: BeforeAfterProps) {
     { key: 'lcp', label: 'LCP', unit: 's', invert: true, format: (v) => v.toFixed(2) },
     { key: 'cls', label: 'CLS', unit: '', invert: true, format: (v) => v.toFixed(3) },
     { key: 'tbt', label: 'TBT', unit: 'ms', invert: true, format: (v) => String(Math.round(v)) },
-    { key: 'totalWeight', label: 'Poids', unit: ' Ko', invert: true, format: (v) => String(Math.round(v)) },
+    { key: 'totalWeight', label: 'Poids', unit: '', invert: true, format: (v) => formatWeight(v) },
   ]
 
   function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
   }
+
+  const hasRealWeights = current.totalWeight != null && previous.totalWeight != null
 
   return (
     <Card>
@@ -64,9 +68,11 @@ export function BeforeAfter({ current, previous }: BeforeAfterProps) {
           </div>
         </div>
 
-        {/* Métriques comparées */}
+        {/* Métriques comparées (le poids n'apparaît que s'il a été réellement mesuré) */}
         <div className="space-y-2.5">
-          {metrics.map((m, i) => {
+          {metrics
+            .filter((m) => m.key !== 'totalWeight' || hasRealWeights)
+            .map((m, i) => {
             const prevVal = previous[m.key] as number
             const currVal = current[m.key] as number
             const diff = currVal - prevVal

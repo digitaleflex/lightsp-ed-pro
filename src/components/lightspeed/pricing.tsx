@@ -5,7 +5,8 @@ import { motion } from 'framer-motion'
 import { Check, Sparkles, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { toast } from '@/hooks/use-toast'
+
+const SALES_EMAIL = 'support@velocita.fr'
 
 const PLANS = [
   {
@@ -22,6 +23,7 @@ const PLANS = [
       'Score Core Web Vitals',
     ],
     cta: 'Commencer gratuitement',
+    ctaHref: '/outil',
     highlighted: false,
   },
   {
@@ -40,6 +42,7 @@ const PLANS = [
       'Rapports PDF',
     ],
     cta: 'Essayer Pro 14 jours',
+    ctaHref: `mailto:${SALES_EMAIL}?subject=${encodeURIComponent('Essai Pro 14 jours — Vélocita')}`,
     highlighted: true,
     badge: 'Le plus populaire',
   },
@@ -59,6 +62,7 @@ const PLANS = [
       'Gestionnaire de compte dédié',
     ],
     cta: 'Contacter les ventes',
+    ctaHref: `mailto:${SALES_EMAIL}?subject=${encodeURIComponent('Plan Entreprise — Vélocita')}`,
     highlighted: false,
   },
 ] as const
@@ -86,14 +90,16 @@ export function Pricing() {
 
         {/* Toggle annuel / mensuel */}
         <div className="mb-10 flex items-center justify-center gap-3">
-          <span className={cn('text-sm', !annual && 'font-semibold')}>Mensuel</span>
+          <span id="billing-monthly" className={cn('text-sm', !annual && 'font-semibold')}>Mensuel</span>
           <button
+            role="switch"
+            aria-checked={annual}
+            aria-labelledby="billing-monthly billing-annual"
             onClick={() => setAnnual(!annual)}
             className={cn(
               'relative h-7 w-14 rounded-full border border-border transition-colors',
               annual ? 'bg-primary' : 'bg-muted'
             )}
-            aria-label="Basculer annuel"
           >
             <span
               className={cn(
@@ -102,7 +108,7 @@ export function Pricing() {
               )}
             />
           </button>
-          <span className={cn('text-sm', annual && 'font-semibold')}>
+          <span id="billing-annual" className={cn('text-sm', annual && 'font-semibold')}>
             Annuel{' '}
             <span className="rounded-full bg-chart-2/15 px-2 py-0.5 text-xs font-medium text-chart-2">
               -20%
@@ -114,6 +120,7 @@ export function Pricing() {
         <div className="grid gap-6 lg:grid-cols-3">
           {PLANS.map((p, i) => {
             const price = annual ? Math.round(p.price * 0.8) : p.price
+            const annualTotal = Math.round(p.price * 0.8 * 12)
             return (
               <motion.div
                 key={p.name}
@@ -142,18 +149,27 @@ export function Pricing() {
                   <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
                 </div>
 
-                <div className="mb-6 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">{price}€</span>
-                  <span className="text-sm text-muted-foreground">{p.period}</span>
+                <div className="mb-6 flex flex-col gap-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold">{price}€</span>
+                    <span className="text-sm text-muted-foreground">{p.period}</span>
+                  </div>
+                  {annual && p.price > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      soit {annualTotal} € facturés une fois par an
+                    </span>
+                  )}
                 </div>
 
                 <Button
                   className={cn('mb-6 gap-2', p.highlighted && 'shadow-lg shadow-primary/20')}
                   variant={p.highlighted ? 'default' : 'outline'}
-                  onClick={() => toast({ title: `${p.name} sélectionné`, description: 'Redirection vers le paiement…' })}
+                  asChild
                 >
-                  <Zap className="h-4 w-4" fill="currentColor" />
-                  {p.cta}
+                  <a href={p.ctaHref}>
+                    <Zap className="h-4 w-4" fill="currentColor" />
+                    {p.cta}
+                  </a>
                 </Button>
 
                 <ul className="space-y-3">

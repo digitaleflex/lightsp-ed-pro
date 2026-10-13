@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Gamepad2, Trophy, Zap, RotateCcw, Check, X } from 'lucide-react'
+import { Gamepad2, Trophy, Zap, RotateCcw, Check, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -12,17 +12,29 @@ interface GameSite {
   lcp: number
 }
 
-// Paires de sites réels avec scores Lighthouse (simulés mais réalistes)
-const PAIRS: { a: GameSite; b: GameSite }[] = [
-  { a: { name: 'Vercel', score: 99, lcp: 0.9 }, b: { name: 'Stripe', score: 94, lcp: 1.4 } },
-  { a: { name: 'Figma', score: 97, lcp: 1.2 }, b: { name: 'Notion', score: 78, lcp: 3.1 } },
-  { a: { name: 'GitHub', score: 72, lcp: 2.8 }, b: { name: 'Linear', score: 95, lcp: 1.1 } },
-  { a: { name: 'Next.js', score: 96, lcp: 1.3 }, b: { name: 'Apple', score: 89, lcp: 1.9 } },
-  { a: { name: 'Tailwind', score: 93, lcp: 1.6 }, b: { name: 'Shopify', score: 61, lcp: 3.5 } },
-  { a: { name: 'Cloudflare', score: 98, lcp: 1.0 }, b: { name: 'Netflix', score: 76, lcp: 2.9 } },
-]
+// Duels générés à partir des MESURES RÉELLES du classement (/api/leaderboard).
+// Aucun score codé en dur : chaque site affiché a été audité par Lighthouse.
+function buildPairs(entries: GameSite[]): { a: GameSite; b: GameSite }[] {
+  const sorted = [...entries].filter((e) => Number.isFinite(e.score)).sort((x, y) => y.score - x.score)
+  const pairs: { a: GameSite; b: GameSite }[] = []
+  // On apparie le haut et le bas du classement pour des duels variés
+  let i = 0
+  let j = sorted.length - 1
+  while (i < j && pairs.length < 6) {
+    const first = sorted[i]
+    const second = sorted[j]
+    i++
+    j--
+    if (first.score === second.score) continue // pas d'égalité dans un duel
+    // Côté gauche/droit tiré au sort pour éviter le biais de position
+    pairs.push(Math.random() < 0.5 ? { a: first, b: second } : { a: second, b: first })
+  }
+  return pairs
+}
 
 export function SpeedGame() {
+  const [pairs, setPairs] = React.useState<{ a: GameSite; b: GameSite }[]>([])
+  const [loading, setLoading] = React.useState(true)
   const [pairIdx, setPairIdx] = React.useState(0)
   const [revealed, setRevealed] = React.useState(false)
   const [choice, setChoice] = React.useState<'a' | 'b' | null>(null)
@@ -31,8 +43,28 @@ export function SpeedGame() {
   const [bestStreak, setBestStreak] = React.useState(0)
   const [finished, setFinished] = React.useState(false)
 
-  const pair = PAIRS[pairIdx]
-  const winner = pair.a.score >= pair.b.score ? 'a' : 'b'
+  React.useEffect(() => {
+    let cancelled = false
+    fetch('/api/leaderboard')
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return
+        const entries: GameSite[] = (d?.leaderboard ?? []).map((e: any) => ({
+          name: e.name,
+          score: e.performance,
+          lcp: e.lcp,
+        }))
+        setPairs(buildPairs(entries))
+      })
+      .catch((e) => console.error(e))
+      .finally(() => !cancelled && setLoading(false))
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const pair = pairs[pairIdx]
+  const winner = pair && pair.a.score >= pair.b.score ? 'a' : 'b'
   const isCorrect = choice === winner
 
   function choose(side: 'a' | 'b') {
@@ -52,7 +84,7 @@ export function SpeedGame() {
   }
 
   function next() {
-    if (pairIdx < PAIRS.length - 1) {
+    if (pairIdx < pairs.length - 1) {
       setPairIdx((p) => p + 1)
       setRevealed(false)
       setChoice(null)
@@ -85,16 +117,37 @@ export function SpeedGame() {
             Lequel est le plus rapide ?
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Devinez quel site a le meilleur score Lighthouse. Testez votre
-            intuition et enchaînez les bonnes réponses !
+            Devinez quel site a le meilleur score Lighthouse — de vrais duels tirés des
+            mesures réelles du classement. Testez votre intuition et enchaînez les bonnes réponses !
           </p>
         </div>
 
+        {/* Chargement / pas assez de mesures */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16">
+            <Loader2 className="h-7 w-7 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Chargement des mesures réelles…</p>
+          </div>
+        ) : pairs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-card/50 py-16 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <Gamepad2 className="h-7 w-7 opacity-50" />
+            </div>
+            <div>
+              <p className="font-semibold">Pas encore assez de sites mesurés</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Le jeu utilise les scores Lighthouse réels du classement. Revenez dès que
+                plusieurs sites auront été mesurés.
+              </p>
+            </div>
+          </div>
+        ) : (
+        <>
         {/* Stats du jeu */}
         <div className="mx-auto mb-6 flex max-w-md items-center justify-center gap-3">
           <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
             <Trophy className="h-4 w-4" />
-            Score : {score}/{PAIRS.length}
+            Score : {score}/{pairs.length}
           </div>
           <div className="flex items-center gap-1.5 rounded-full bg-chart-4/10 px-3 py-1.5 text-sm font-medium text-chart-4">
             <Zap className="h-4 w-4" />
@@ -120,10 +173,10 @@ export function SpeedGame() {
                 <Trophy className="h-10 w-10" />
               </div>
               <h3 className="mb-2 text-2xl font-bold">
-                {score === PAIRS.length ? 'Parfait ! 🏆' : score >= PAIRS.length / 2 ? 'Bien joué !' : 'Continue à t\'entraîner !'}
+                {score === pairs.length ? 'Parfait ! 🏆' : score >= pairs.length / 2 ? 'Bien joué !' : 'Continue à t\'entraîner !'}
               </h3>
               <p className="mb-6 text-muted-foreground">
-                Vous avez obtenu <span className="font-bold text-primary">{score}</span> sur {PAIRS.length}
+                Vous avez obtenu <span className="font-bold text-primary">{score}</span> sur {pairs.length}
                 {bestStreak >= 3 && (
                   <> avec une série record de <span className="font-bold text-chart-4">{bestStreak}</span> ✨</>
                 )}
@@ -143,7 +196,7 @@ export function SpeedGame() {
             >
               {/* Compteur */}
               <p className="mb-4 text-center text-xs text-muted-foreground">
-                Duel {pairIdx + 1} / {PAIRS.length}
+                Duel {pairIdx + 1} / {pairs.length}
               </p>
 
               {/* Duel */}
@@ -197,7 +250,7 @@ export function SpeedGame() {
                     </div>
                     <div className="flex justify-center">
                       <Button onClick={next} className="gap-1.5 shadow-lg">
-                        {pairIdx < PAIRS.length - 1 ? 'Duel suivant' : 'Voir mon score'}
+                        {pairIdx < pairs.length - 1 ? 'Duel suivant' : 'Voir mon score'}
                         →
                       </Button>
                     </div>
@@ -207,6 +260,8 @@ export function SpeedGame() {
             </motion.div>
           )}
         </AnimatePresence>
+        </>
+        )}
       </div>
     </section>
   )

@@ -163,7 +163,7 @@ export function Glossary() {
           <div className="flex-1">
             <p className="font-semibold">Envie d'aller plus loin ?</p>
             <p className="text-sm text-muted-foreground">
-              Testez votre site avec Lightspeed pour voir vos Core Web Vitals réels
+              Testez votre site avec Vélocita pour voir vos Core Web Vitals réels
               et obtenir des recommandations d'optimisation personnalisées.
             </p>
           </div>

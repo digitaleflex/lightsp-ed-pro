@@ -6,7 +6,7 @@ import { Star, Quote } from 'lucide-react'
 const TESTIMONIALS = [
   {
     quote:
-      "Lightspeed a transformé notre approche de la performance. Nous avons détecté une régression Lighthouse 2h après un déploiement, avant qu'elle n'impacte nos utilisateurs.",
+      "Vélocita a transformé notre approche de la performance. Nous avons détecté une régression Lighthouse 2h après un déploiement, avant qu'elle n'impacte nos utilisateurs.",
     name: 'Camille Laurent',
     role: 'Lead Frontend, Drift',
     avatar: 'CL',
@@ -49,10 +49,10 @@ export function Testimonials() {
             Témoignages
           </p>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Ils ont accéléré avec Lightspeed
+            Ils ont accéléré avec Vélocita
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Plus de 4 500 équipes font confiance à Lightspeed pour surveiller
+            Plus de 4 500 équipes font confiance à Vélocita pour surveiller
             et optimiser leurs performances web.
           </p>
         </div>

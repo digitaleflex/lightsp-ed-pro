@@ -26,13 +26,73 @@ export interface LighthouseResult {
   cls: number // Cumulative Layout Shift
   si: number // Speed Index
   ttfb: number // Time to First Byte (ms)
-  fid: number // First Input Delay (ms)
+  inp: number // Interaction to Next Paint (ms) — Core Web Vital depuis 2024, bon ≤ 200
+  /** @deprecated miroir de inp, conservé pour compatibilité */
+  fid: number
   totalWeight: number // KB
   recommendations: { title: string; description: string; score: number; impact: string }[]
   metrics: { label: string; value: string; status: 'good' | 'average' | 'poor'; hint: string }[]
   resourceBreakdown: { name: string; size: number; color: string; requests: number }[]
   regionLatency: { region: string; latency: number }[]
   waterfall: { name: string; type: string; color: string; startTime: number; duration: number; size: number }[]
+}
+
+// Construit la liste de métriques affichée (seuils Lighthouse officiels)
+export function buildMetrics(v: {
+  fcp: number
+  lcp: number
+  tbt: number
+  inp: number
+  cls: number
+  si: number
+  ttfb: number
+}): LighthouseResult['metrics'] {
+  const status = (good: boolean, avg: boolean) => (good ? 'good' : avg ? 'average' : 'poor') as 'good' | 'average' | 'poor'
+
+  return [
+    {
+      label: 'Première peinture de contenu (FCP)',
+      value: `${v.fcp}s`,
+      status: status(v.fcp < 1.8, v.fcp < 3),
+      hint: 'Mesure quand le premier contenu apparaît.',
+    },
+    {
+      label: 'Plus grande peinture de contenu (LCP)',
+      value: `${v.lcp}s`,
+      status: status(v.lcp < 2.5, v.lcp < 4),
+      hint: 'Mesure le chargement du plus grand élément visible.',
+    },
+    {
+      label: 'Temps de blocage total (TBT)',
+      value: `${v.tbt}ms`,
+      status: status(v.tbt < 200, v.tbt < 600),
+      hint: 'Quantifie la non-interactivité pendant le chargement (proxy lab de l’INP).',
+    },
+    {
+      label: 'Interaction to Next Paint (INP)',
+      value: `${v.inp}ms`,
+      status: status(v.inp <= 200, v.inp <= 500),
+      hint: 'Core Web Vital interactivité depuis 2024 : réactivité réelle aux clics/taps.',
+    },
+    {
+      label: 'Décalage de mise en page cumulé (CLS)',
+      value: v.cls.toFixed(3),
+      status: status(v.cls < 0.1, v.cls < 0.25),
+      hint: 'Mesure la stabilité visuelle de la page.',
+    },
+    {
+      label: 'Indice de vitesse (Speed Index)',
+      value: `${v.si}s`,
+      status: status(v.si < 3.4, v.si < 5.8),
+      hint: "Mesure la vitesse d'affichage du contenu visible.",
+    },
+    {
+      label: "Temps jusqu'au premier octet (TTFB)",
+      value: `${v.ttfb}ms`,
+      status: status(v.ttfb < 200, v.ttfb < 500),
+      hint: 'Mesure la réactivité du serveur.',
+    },
+  ]
 }
 
 // Simule une analyse Lighthouse pour une URL donnée
@@ -64,7 +124,9 @@ export function analyzeUrl(url: string, device: 'desktop' | 'mobile' = 'desktop'
   const cls = +(rng() * 0.18).toFixed(3)
   const si = +(1.3 + rng() * 2.6 + (device === 'mobile' ? 1.2 : 0)).toFixed(2)
   const ttfb = Math.round(90 + rng() * 420)
-  const fid = Math.round(2 + rng() * 120)
+  // INP : seuils Google bon ≤ 200ms, à améliorer ≤ 500ms
+  const inp = Math.round(60 + rng() * 320 + (device === 'mobile' ? 80 : 0))
+  const fid = inp // DEPRECATED : miroir pour compatibilité
   const totalWeight = Math.round(220 + rng() * 3200)
 
   // Recommandations Lighthouse
@@ -125,46 +187,7 @@ export function analyzeUrl(url: string, device: 'desktop' | 'mobile' = 'desktop'
     .sort((a, b) => a.score - b.score)
     .slice(0, 6)
 
-  const status = (good: boolean, avg: boolean) => (good ? 'good' : avg ? 'average' : 'poor') as 'good' | 'average' | 'poor'
-
-  const metrics = [
-    {
-      label: 'Première peinture de contenu (FCP)',
-      value: `${fcp}s`,
-      status: status(fcp < 1.8, fcp < 3),
-      hint: 'Mesure quand le premier contenu apparaît.',
-    },
-    {
-      label: 'Plus grande peinture de contenu (LCP)',
-      value: `${lcp}s`,
-      status: status(lcp < 2.5, lcp < 4),
-      hint: 'Mesure le chargement du plus grand élément visible.',
-    },
-    {
-      label: 'Temps de blocage total (TBT)',
-      value: `${tbt}ms`,
-      status: status(tbt < 200, tbt < 600),
-      hint: "Quantifie la non-interactivité pendant le chargement.",
-    },
-    {
-      label: 'Décalage de mise en page cumulé (CLS)',
-      value: cls.toFixed(3),
-      status: status(cls < 0.1, cls < 0.25),
-      hint: 'Mesure la stabilité visuelle de la page.',
-    },
-    {
-      label: 'Indice de vitesse (Speed Index)',
-      value: `${si}s`,
-      status: status(si < 3.4, si < 5.8),
-      hint: 'Mesure la vitesse d\'affichage du contenu visible.',
-    },
-    {
-      label: 'Temps jusqu\'au premier octet (TTFB)',
-      value: `${ttfb}ms`,
-      status: status(ttfb < 200, ttfb < 500),
-      hint: 'Mesure la réactivité du serveur.',
-    },
-  ]
+  const metrics = buildMetrics({ fcp, lcp, tbt, inp, cls, si, ttfb })
 
   // Répartition des ressources par type (style Lighthouse)
   // Les ratios ne couvrent pas 100% — "Autres" absorbe le reste pour garantir
@@ -249,7 +272,8 @@ export function analyzeUrl(url: string, device: 'desktop' | 'mobile' = 'desktop'
     cls,
     si,
     ttfb,
-    fid,
+    inp,
+    fid, // DEPRECATED : miroir de inp
     totalWeight,
     recommendations,
     metrics,
@@ -259,7 +283,7 @@ export function analyzeUrl(url: string, device: 'desktop' | 'mobile' = 'desktop'
   }
 }
 
-// Données de seed pour le classement et le monitoring
+// Données de seed : les VRAIS sites qui seront mesurés en réel au démarrage
 export const SEED_WEBSITES = [
   { url: 'https://vercel.com', name: 'Vercel', category: 'Tech' },
   { url: 'https://nextjs.org', name: 'Next.js', category: 'Tech' },
@@ -277,27 +301,39 @@ export const SEED_WEBSITES = [
   { url: 'https://spotify.com', name: 'Spotify', category: 'Divertissement' },
   { url: 'https://shopify.com', name: 'Shopify', category: 'E-commerce' },
   { url: 'https://cloudflare.com', name: 'Cloudflare', category: 'Tech' },
+  // --- Extension catalogue vitrine (50 sites au total) ---
+  { url: 'https://google.com', name: 'Google', category: 'Tech' },
+  { url: 'https://mozilla.org', name: 'Mozilla', category: 'Tech' },
+  { url: 'https://docker.com', name: 'Docker', category: 'Tech' },
+  { url: 'https://npmjs.com', name: 'npm', category: 'Tech' },
+  { url: 'https://stackoverflow.com', name: 'Stack Overflow', category: 'Tech' },
+  { url: 'https://slack.com', name: 'Slack', category: 'SaaS' },
+  { url: 'https://dropbox.com', name: 'Dropbox', category: 'SaaS' },
+  { url: 'https://zoom.us', name: 'Zoom', category: 'SaaS' },
+  { url: 'https://salesforce.com', name: 'Salesforce', category: 'SaaS' },
+  { url: 'https://hubspot.com', name: 'HubSpot', category: 'SaaS' },
+  { url: 'https://etsy.com', name: 'Etsy', category: 'E-commerce' },
+  { url: 'https://ebay.com', name: 'eBay', category: 'E-commerce' },
+  { url: 'https://aliexpress.com', name: 'AliExpress', category: 'E-commerce' },
+  { url: 'https://zalando.fr', name: 'Zalando', category: 'E-commerce' },
+  { url: 'https://cdiscount.com', name: 'Cdiscount', category: 'E-commerce' },
+  { url: 'https://decathlon.com', name: 'Decathlon', category: 'E-commerce' },
+  { url: 'https://paypal.com', name: 'PayPal', category: 'Finance' },
+  { url: 'https://revolut.com', name: 'Revolut', category: 'Finance' },
+  { url: 'https://wise.com', name: 'Wise', category: 'Finance' },
+  { url: 'https://binance.com', name: 'Binance', category: 'Finance' },
+  { url: 'https://boursorama.com', name: 'Boursorama', category: 'Finance' },
+  { url: 'https://dribbble.com', name: 'Dribbble', category: 'Design' },
+  { url: 'https://behance.net', name: 'Behance', category: 'Design' },
+  { url: 'https://canva.com', name: 'Canva', category: 'Design' },
+  { url: 'https://adobe.com', name: 'Adobe', category: 'Design' },
+  { url: 'https://twitch.tv', name: 'Twitch', category: 'Divertissement' },
+  { url: 'https://youtube.com', name: 'YouTube', category: 'Divertissement' },
+  { url: 'https://deezer.com', name: 'Deezer', category: 'Divertissement' },
+  { url: 'https://store.steampowered.com', name: 'Steam', category: 'Divertissement' },
+  { url: 'https://booking.com', name: 'Booking.com', category: 'Voyage' },
+  { url: 'https://tripadvisor.com', name: 'Tripadvisor', category: 'Voyage' },
+  { url: 'https://skyscanner.net', name: 'Skyscanner', category: 'Voyage' },
+  { url: 'https://expedia.com', name: 'Expedia', category: 'Voyage' },
+  { url: 'https://lemonde.fr', name: 'Le Monde', category: 'Médias' },
 ]
-
-// Génère des données de monitoring historique (30 derniers jours)
-export function generateMonitoringHistory(baseScore: number, days: number = 30) {
-  const rng = seededRandom(`history-${baseScore}`)
-  const data: { date: string; score: number; lcp: number; cls: number }[] = []
-  const now = new Date()
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now)
-    date.setDate(date.getDate() - i)
-    const variation = (rng() - 0.5) * 12
-    const trend = (days - i) * 0.3 // amélioration progressive
-    const score = Math.max(20, Math.min(100, Math.round(baseScore + variation + trend)))
-    const lcp = +(2 + (rng() - 0.5) * 2).toFixed(2)
-    const cls = +(0.05 + rng() * 0.15).toFixed(3)
-    data.push({
-      date: date.toISOString().slice(0, 10),
-      score,
-      lcp,
-      cls,
-    })
-  }
-  return data
-}

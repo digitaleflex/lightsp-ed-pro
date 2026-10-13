@@ -8,7 +8,7 @@ interface StatusWidgetProps {
 }
 
 export function StatusWidget({ compact = false }: StatusWidgetProps) {
-  // Statut simulé (en production, viendrait d'une API réelle)
+  // Statut de démonstration (en production, viendrait d'une API de monitoring réelle)
   const status = 'operational' // operational | degraded | outage
   const uptime = 99.98
   const responseTime = 42 // ms
@@ -23,7 +23,7 @@ export function StatusWidget({ compact = false }: StatusWidgetProps) {
   if (compact) {
     return (
       <a
-        href="#"
+        href="/status"
         className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-2.5 py-1 text-xs font-medium transition-colors hover:border-primary/40"
         aria-label="Statut du système"
       >
@@ -31,6 +31,9 @@ export function StatusWidget({ compact = false }: StatusWidgetProps) {
           <span className="h-full w-full animate-ping rounded-full opacity-75" style={{ animationDuration: '2s' }} />
         </span>
         <span className="text-muted-foreground">Tous les systèmes opérationnels</span>
+        <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-amber-600 dark:text-amber-400">
+          démo
+        </span>
       </a>
     )
   }
@@ -49,7 +52,9 @@ export function StatusWidget({ compact = false }: StatusWidgetProps) {
           </span>
           <div>
             <p className="text-sm font-semibold">Statut du système</p>
-            <p className="text-xs text-muted-foreground">Surveillance des API Lightspeed</p>
+            <p className="text-xs text-muted-foreground">
+              Surveillance des API Vélocita • données de démonstration
+            </p>
           </div>
         </div>
         <CheckCircle2 className={`h-5 w-5 ${status === 'operational' ? 'text-primary' : 'text-chart-4'}`} />

@@ -85,7 +85,7 @@ export function Features() {
             Le kit de surveillance de vitesse
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Lightspeed inclut toutes les fonctionnalités dont vous avez besoin
+            Vélocita inclut toutes les fonctionnalités dont vous avez besoin
             pour surveiller les performances et obtenir des informations de
             vitesse pour votre site web.
           </p>
@@ -130,7 +130,7 @@ export function Features() {
         <div className="mt-12 text-center">
           <p className="text-sm text-muted-foreground">
             Prêt à accélérer votre site ?{' '}
-            <a href="#outil" className="font-semibold text-primary hover:underline">
+            <a href="/outil" className="font-semibold text-primary hover:underline">
               Essayez gratuitement →
             </a>
           </p>

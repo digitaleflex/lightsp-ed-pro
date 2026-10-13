@@ -2,11 +2,13 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cookie, X, Check } from 'lucide-react'
+import { Cookie, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/hooks/use-toast'
 
 const STORAGE_KEY = 'lightspeed-cookie-consent'
+
+export type CookieChoice = 'all' | 'essential'
 
 export function CookieConsent() {
   const [visible, setVisible] = React.useState(false)
@@ -19,19 +21,40 @@ export function CookieConsent() {
     }
   }, [])
 
-  function accept(choice: 'all' | 'essential') {
+  // « Gérer les cookies » (footer) : efface le choix et rouvre le bandeau.
+  React.useEffect(() => {
+    const reopen = () => {
+      localStorage.removeItem(STORAGE_KEY)
+      setVisible(true)
+    }
+    window.addEventListener('lightspeed:manage-cookies', reopen)
+    return () => window.removeEventListener('lightspeed:manage-cookies', reopen)
+  }, [])
+
+  function accept(choice: CookieChoice) {
     localStorage.setItem(STORAGE_KEY, choice)
     setVisible(false)
     toast({
       title: choice === 'all' ? 'Préférences enregistrées' : 'Cookies essentiels uniquement',
-      description: choice === 'all' ? 'Merci ! Vous pouvez modifier cela à tout moment.' : 'Seuls les cookies essentiels sont activés.',
+      description:
+        choice === 'all'
+          ? 'Merci ! Vous pouvez modifier cela à tout moment.'
+          : 'Mesure d’audience désactivée. Modifiable à tout moment.',
     })
+  }
+
+  /** La croix referme SANS enregistrer de choix : le bandeau reviendra à la prochaine visite. */
+  function dismiss() {
+    setVisible(false)
   }
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
+          role="dialog"
+          aria-modal="false"
+          aria-label="Choix des cookies"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 40 }}
@@ -47,28 +70,32 @@ export function CookieConsent() {
                 <h3 className="text-sm font-semibold">Nous respectons votre vie privée</h3>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                   Nous utilisons des cookies pour le fonctionnement essentiel du site
-                  et, avec votre accord, pour mesurer l'audence de façon anonyme.
-                  Vous pouvez tout refuser sauf les essentiels.{' '}
-                  <a href="#" className="font-medium text-primary underline hover:no-underline">
+                  et, avec votre accord, pour mesurer l’audience de façon anonyme.
+                  Sans réponse de votre part, rien n’est activé.{' '}
+                  <a href="/faq" className="font-medium text-primary underline hover:no-underline">
                     En savoir plus
                   </a>
                 </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button size="sm" className="gap-1.5" onClick={() => accept('all')}>
-                    <Check className="h-3.5 w-3.5" />
+                <div className="mt-4 flex min-h-[44px] flex-wrap items-center gap-2">
+                  <Button size="sm" className="min-h-[44px] gap-1.5" onClick={() => accept('all')}>
                     Tout accepter
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => accept('essential')}>
-                    Refuser les optionnels
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="min-h-[44px]"
+                    onClick={() => accept('essential')}
+                  >
+                    Tout refuser
                   </Button>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-2 h-7 w-7 sm:relative sm:right-0 sm:top-0"
-                onClick={() => accept('essential')}
-                aria-label="Fermer"
+                className="absolute right-2 top-2 h-11 w-11 sm:relative sm:right-0 sm:top-0 sm:shrink-0"
+                onClick={dismiss}
+                aria-label="Fermer sans choisir (redemandé à la prochaine visite)"
               >
                 <X className="h-4 w-4" />
               </Button>

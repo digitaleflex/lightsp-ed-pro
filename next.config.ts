@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   /* config options here */
+  // Paquets Node natifs/serveur : ne pas bundler (Lighthouse local)
+  serverExternalPackages: ["lighthouse", "chrome-launcher"],
   typescript: {
     ignoreBuildErrors: true,
   },

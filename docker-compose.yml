@@ -1,0 +1,39 @@
+services:
+  # Supabase PostgreSQL
+  db:
+    image: supabase/postgres:15.1.0.147
+    container_name: supabase_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PORT: 5432
+    ports:
+      - "5432:5432"
+    volumes:
+      - supabase_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Supabase Studio (DB admin UI)
+  studio:
+    image: supabase/studio:latest
+    container_name: supabase_studio
+    restart: unless-stopped
+    environment:
+      SUPABASE_URL: http://localhost:54321
+      SUPABASE_PUBLIC_URL: http://localhost:54321
+      STUDIO_DEFAULT_ORG: "Lightspeed Clone"
+      STUDIO_DEFAULT_PROJECT: "Velocita"
+    ports:
+      - "54323:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  supabase_db_data:

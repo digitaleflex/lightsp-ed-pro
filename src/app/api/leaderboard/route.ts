@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { getMeasureJob } from '@/lib/jobs'
 
 // Classement des sites par score de performance (dernier test)
 export async function GET() {
@@ -35,6 +36,7 @@ export async function GET() {
           cls: latest.cls,
           tbt: latest.tbt,
           totalWeight: latest.totalWeight,
+          source: latest.source,
           createdAt: latest.createdAt,
           sparkline,
         }
@@ -43,7 +45,22 @@ export async function GET() {
       .sort((a: any, b: any) => b.performance - a.performance)
       .map((w: any, i) => ({ ...w, rank: i + 1 }))
 
-    return NextResponse.json({ success: true, leaderboard: ranked })
+    // Transparence sur l'origine des mesures
+    const tests = await db.speedTest.findMany({ select: { source: true } })
+    const sources = tests.reduce<Record<string, number>>((acc, t) => {
+      acc[t.source] = (acc[t.source] ?? 0) + 1
+      return acc
+    }, {})
+
+    return NextResponse.json({
+      success: true,
+      leaderboard: ranked,
+      meta: {
+        sources,
+        totalTests: tests.length,
+        job: getMeasureJob(),
+      },
+    })
   } catch (e) {
     console.error(e)
     return NextResponse.json({ error: 'Erreur' }, { status: 500 })

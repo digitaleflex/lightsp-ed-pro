@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#0C3550"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#0EA5E9" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#0EA5E9" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#38BDF8" font-weight="bold">LIGHTSPEED · FCP</text>
+  <text x="76" y="268" font-family="Arial, Helvetica, sans-serif" font-size="150" font-weight="bold" fill="#ffffff">FCP</text>
+  <text x="80" y="340" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#BAE6FD">First Contentful Paint</text>
+  <text x="80" y="392" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#38BDF8">Premier contenu affiché</text>
+  <rect x="80" y="424" width="250" height="64" rx="32" fill="#0EA5E9"/>
+  <text x="205" y="467" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="bold" fill="#082A40" text-anchor="middle">&lt; 1,8 s</text>
+  <!-- Éclair -->
+  <g>
+    <polygon points="905,140 745,370 845,370 805,500 965,310 860,310" fill="#0EA5E9" opacity="0.9"/>
+    <polygon points="905,140 745,370 845,370 805,500 965,310 860,310" fill="none" stroke="#ffffff" stroke-width="8" stroke-linejoin="round"/>
+    <g stroke="#38BDF8" stroke-width="7" stroke-linecap="round" opacity="0.7">
+      <line x1="680" y1="230" x2="640" y2="230"/>
+      <line x1="690" y1="300" x2="645" y2="300"/>
+      <line x1="1000" y1="420" x2="1045" y2="420"/>
+    </g>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#0EA5E9"/>
+</svg>

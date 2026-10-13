@@ -4,6 +4,7 @@ import * as React from 'react'
 import { motion } from 'framer-motion'
 import { Calculator, Target, Zap, Clock, Gauge, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatWeight, formatSaving } from '@/lib/format'
 import { ScoreRing } from './score-ring'
 
 type Strategy = 'eco' | 'balanced' | 'aggressive'
@@ -57,6 +58,9 @@ export function BudgetCalculator() {
           <p className="mt-4 text-muted-foreground">
             Définissez vos objectifs de performance et voyez instantanément les
             optimisations nécessaires pour les atteindre.
+          </p>
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
+            🧮 Estimation indicative (modèle de calcul) — ne remplace pas une mesure Lighthouse
           </p>
         </div>
 
@@ -134,13 +138,13 @@ export function BudgetCalculator() {
                 <GainCard
                   icon={TrendingDown}
                   label="Réduction de poids"
-                  value={`-${(savings / 1024).toFixed(1)} Mo`}
+                  value={formatSaving(savings)}
                   positive={savings > 0}
                 />
                 <GainCard
                   icon={Clock}
                   label="Gain de temps LCP"
-                  value={`-${lcpGain}s`}
+                  value={lcpGain > 0 ? `-${lcpGain}s` : '0 — objectif atteint'}
                   positive={lcpGain > 0}
                 />
               </div>
@@ -161,7 +165,7 @@ export function BudgetCalculator() {
                   {currentWeight > t.weight && (
                     <li className="flex items-start gap-1.5">
                       <span className="mt-0.5 text-primary">→</span>
-                      Réduisez le poids de {(savings / 1024).toFixed(1)} Mo (WebP, code-splitting)
+                      Réduisez le poids de {formatWeight(savings)} (WebP, code-splitting)
                     </li>
                   )}
                   {currentLcp <= t.lcp && currentWeight <= t.weight && (
@@ -217,8 +221,7 @@ function SliderInput({
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">{label}</span>
         <span className={cn('font-mono text-sm font-bold', good ? 'text-primary' : 'text-chart-4')}>
-          {value < 1000 ? value : (value / 1024).toFixed(1)}
-          {value < 1000 ? unit : ' Mo'}
+          {unit.trim() === 'Ko' ? formatWeight(value) : `${value}${unit}`}
         </span>
       </div>
       <input
@@ -228,14 +231,15 @@ function SliderInput({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        aria-label={label}
         className="h-2 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary"
       />
       <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>{min}{unit}</span>
+        <span>{unit.trim() === 'Ko' ? formatWeight(min) : `${min}${unit}`}</span>
         <span className={good ? 'text-primary' : 'text-chart-4'}>
-          Cible : {target}{unit}
+          Cible : {unit.trim() === 'Ko' ? formatWeight(target) : `${target}${unit}`}
         </span>
-        <span>{max}{unit}</span>
+        <span>{unit.trim() === 'Ko' ? formatWeight(max) : `${max}${unit}`}</span>
       </div>
     </div>
   )

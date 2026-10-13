@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import { GitCommit, Sparkles, Zap, Shield, BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -63,7 +64,7 @@ export function Changelog() {
             Journal des évolutions
           </p>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Lightspeed s'améliore en continu
+            Vélocita s'améliore en continu
           </h2>
           <p className="mt-4 text-muted-foreground">
             Nous publions des mises à jour régulièrement. Voici les dernières
@@ -116,7 +117,7 @@ export function Changelog() {
             <GitCommit className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
               Voir l'historique complet sur{' '}
-              <a href="#" className="font-medium text-primary hover:underline">GitHub</a>
+              <Link href="/journal" className="font-medium text-primary hover:underline">Journal</Link>
             </span>
           </div>
         </div>

@@ -11,7 +11,7 @@ const STEPS = [
     icon: Link2,
     title: 'Ajoutez votre URL',
     description:
-      "Saisissez l'adresse de votre site. Aucun script à installer, aucune modification de code nécessaire. Lightspeed analyse votre page en quelques secondes.",
+      "Saisissez l'adresse de votre site. Aucun script à installer, aucune modification de code nécessaire. Vélocita analyse votre page en quelques secondes.",
     badge: '30 secondes',
   },
   {
@@ -46,7 +46,7 @@ export function Onboarding() {
             Configurez en 3 étapes simples
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Pas besoin d'être expert en performance. Lightspeed s'occupe de tout,
+            Pas besoin d'être expert en performance. Vélocita s'occupe de tout,
             de la mesure au monitoring continu.
           </p>
         </div>
@@ -102,12 +102,23 @@ export function Onboarding() {
 
         {/* CTA */}
         <div className="mt-12 text-center">
-          <Button size="lg" className="gap-2 shadow-lg shadow-primary/20" asChild>
-            <Link href="#outil">
-              Tester mon site maintenant
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button size="lg" className="gap-2 shadow-lg shadow-primary/20" asChild>
+              <Link href="#outil">
+                Tester mon site maintenant
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2"
+              onClick={() => window.dispatchEvent(new Event('lightspeed:start-tour'))}
+            >
+              <Play className="h-4 w-4" />
+              Visite guidée · 1 min
+            </Button>
+          </div>
           <p className="mt-3 text-xs text-muted-foreground">
             Sans carte bancaire • Résultats en 30 secondes
           </p>

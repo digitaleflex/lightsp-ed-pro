@@ -8,7 +8,7 @@ import {
   Mail,
   Webhook,
   Bell,
-  CheckCircle2,
+  Clock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -46,7 +46,7 @@ const INTEGRATIONS = [
   {
     icon: Webhook,
     name: 'Webhooks',
-    description: 'Intégrez Lightspeed à votre CI/CD via webhooks.',
+    description: 'Intégrez Vélocita à votre CI/CD via webhooks.',
     color: 'text-chart-2',
     bg: 'bg-chart-2/10',
   },
@@ -77,11 +77,14 @@ export function Integrations() {
             Intégrations
           </p>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Lightspeed s'intègre à votre workflow
+            Vélocita s'intègre à votre workflow
           </h2>
           <p className="mt-4 text-muted-foreground">
             Connectez vos outils de développement et de communication pour
             automatiser la surveillance de vos performances.
+          </p>
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
+            🔗 Intégrations présentées à titre d'exemple — les connecteurs ne sont pas encore actifs
           </p>
         </div>
 
@@ -106,9 +109,9 @@ export function Integrations() {
                     {int.description}
                   </p>
                 </div>
-                <span className="mt-auto inline-flex w-fit items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                  <CheckCircle2 className="h-3 w-3" />
-                  Disponible
+                <span className="mt-auto inline-flex w-fit items-center gap-1 rounded-full bg-chart-4/10 px-2 py-0.5 text-[10px] font-medium text-chart-4">
+                  <Clock className="h-3 w-3" />
+                  Bientôt
                 </span>
               </motion.div>
             ))}
@@ -158,7 +161,7 @@ export function Integrations() {
                 </p>
                 <code className="block break-all font-mono text-[11px] text-foreground/80">
                   <span className="text-primary">POST</span>{' '}
-                  https://lightspeed.run/api/hooks/vercel
+                  https://velocita.fr/api/hooks/vercel
                 </code>
               </div>
 

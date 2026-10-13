@@ -21,3 +21,9 @@
 		}
 	}
 }
+
+# Préproduction Vélocita : décommenter sur le serveur (TLS auto via Let's Encrypt).
+# Prérequis DNS : enregistrement A/CNAME tryvelocita.eurinhash.com → IP du serveur.
+# tryvelocita.eurinhash.com {
+# 	reverse_proxy localhost:3000
+# }

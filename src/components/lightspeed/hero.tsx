@@ -68,13 +68,13 @@ export function Hero() {
 
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start justify-center">
               <Button size="lg" className="gap-2 shadow-lg shadow-primary/20" asChild>
-                <Link href="#outil">
+                <Link href="/outil">
                   <Gauge className="h-4 w-4" />
                   Tester mon site gratuitement
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="gap-2" asChild>
-                <Link href="#fonctionnalites">
+                <Link href="/fonctionnalites">
                   Voir les fonctionnalités
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -93,7 +93,7 @@ export function Hero() {
               </blockquote>
               <figcaption className="mt-2 text-xs text-muted-foreground">
                 — Données Google.{' '}
-                <Link href="#" className="underline hover:text-foreground">
+                <Link href="/glossaire" className="underline hover:text-foreground">
                   Source →
                 </Link>
               </figcaption>
@@ -117,7 +117,7 @@ export function Hero() {
                     <span className="h-3 w-3 rounded-full bg-chart-2/70" />
                   </div>
                   <span className="truncate font-mono text-xs text-muted-foreground">
-                    lightspeed.run/rapport
+                    velocita.fr/rapport
                   </span>
                 </div>
                 <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">

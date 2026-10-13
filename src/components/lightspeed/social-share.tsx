@@ -16,9 +16,9 @@ interface SocialShareProps {
 export function SocialShare({ url, score, lcp, cls, className }: SocialShareProps) {
   const [copied, setCopied] = React.useState(false)
 
-  const shareText = `Lightspeed — ${url.replace(/^https?:\/\//, '')}\nPerformance : ${score}/100\nLCP : ${lcp}s • CLS : ${cls}\nTestez le vôtre →`
+  const shareText = `Vélocita — ${url.replace(/^https?:\/\//, '')}\nPerformance : ${score}/100\nLCP : ${lcp}s • CLS : ${cls}\nTestez le vôtre →`
   const encodedText = encodeURIComponent(shareText)
-  const shareUrl = encodeURIComponent('https://lightspeed.run')
+  const shareUrl = encodeURIComponent('https://velocita.fr')
 
   const links = [
     {
@@ -36,7 +36,7 @@ export function SocialShare({ url, score, lcp, cls, className }: SocialShareProp
     {
       icon: Mail,
       label: 'Email',
-      href: `mailto:?subject=Rapport Lightspeed — ${encodeURIComponent(url)}&body=${encodedText}`,
+      href: `mailto:?subject=Rapport Vélocita — ${encodeURIComponent(url)}&body=${encodedText}`,
       color: 'hover:bg-chart-4/10 hover:text-chart-4',
     },
   ]

@@ -31,16 +31,18 @@ function timeAgo(iso: string): string {
 export function RecentSearches({ onPick }: { onPick?: (url: string) => void }) {
   const [items, setItems] = React.useState<RecentItem[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [failed, setFailed] = React.useState(false)
 
   React.useEffect(() => {
     let active = true
     async function load() {
       try {
         const res = await fetch('/api/recent')
+        if (!res.ok) throw new Error(`Historique indisponible (${res.status})`)
         const d = await res.json()
         if (active && d?.recent) setItems(d.recent)
       } catch {
-        // silencieux
+        if (active) setFailed(true)
       } finally {
         if (active) setLoading(false)
       }
@@ -51,7 +53,23 @@ export function RecentSearches({ onPick }: { onPick?: (url: string) => void }) {
     }
   }, [])
 
-  if (loading || items.length === 0) return null
+  if (loading) return null
+  if (failed && items.length === 0) return null
+
+  if (items.length === 0) {
+    return (
+      <div className="mt-6 flex items-center gap-3 rounded-2xl border border-dashed border-border/60 bg-muted/20 p-4">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Clock className="h-5 w-5" />
+        </span>
+        <p className="text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">Vos derniers tests apparaîtront ici.</span>
+          <br />
+          Lancez votre premier audit ci-dessus pour démarrer votre historique.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <motion.div

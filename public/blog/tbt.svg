@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#4A1030"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#F43F5E" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#F43F5E" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#FB7185" font-weight="bold">LIGHTSPEED · TBT</text>
+  <text x="76" y="268" font-family="Arial, Helvetica, sans-serif" font-size="150" font-weight="bold" fill="#ffffff">TBT</text>
+  <text x="80" y="340" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#FECDD3">Total Blocking Time</text>
+  <text x="80" y="392" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#FB7185">Alléger le JavaScript</text>
+  <rect x="80" y="424" width="280" height="64" rx="32" fill="#F43F5E"/>
+  <text x="220" y="467" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="bold" fill="#3D0714" text-anchor="middle">&lt; 200 ms</text>
+  <!-- Chevrons code </> -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="670" y="150" width="360" height="330" rx="26" stroke="#3B4670" stroke-width="10"/>
+    <polyline points="800,260 740,320 800,380" stroke="#FB7185" stroke-width="22"/>
+    <line x1="890" y1="240" x2="845" y2="400" stroke="#ffffff" stroke-width="22"/>
+    <polyline points="920,260 980,320 920,380" stroke="#F43F5E" stroke-width="22"/>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#F43F5E"/>
+</svg>

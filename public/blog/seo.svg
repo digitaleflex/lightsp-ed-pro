@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#2E430C"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#84CC16" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#84CC16" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#A3E635" font-weight="bold">LIGHTSPEED · SEO</text>
+  <text x="76" y="252" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="bold" fill="#ffffff">Vitesse</text>
+  <text x="76" y="348" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="bold" fill="#A3E635">= Revenus</text>
+  <text x="80" y="402" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#A3E635">SEO, conversions et ROI</text>
+  <rect x="80" y="430" width="260" height="60" rx="30" fill="#84CC16"/>
+  <text x="210" y="471" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="bold" fill="#1F2A05" text-anchor="middle">+ conversions</text>
+  <!-- Flèche de croissance -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="680" y1="160" x2="680" y2="490" stroke="#3B4670" stroke-width="8"/>
+    <line x1="680" y1="490" x2="1050" y2="490" stroke="#3B4670" stroke-width="8"/>
+    <polyline points="710,440 790,380 850,405 1000,230" stroke="#84CC16" stroke-width="14"/>
+    <polygon points="1000,230 940,238 976,290" fill="#84CC16" stroke="none"/>
+    <g fill="#84CC16" opacity="0.85">
+      <rect x="730" y="400" width="44" height="90" rx="8"/>
+      <rect x="792" y="360" width="44" height="130" rx="8" opacity="0.65"/>
+      <rect x="854" y="320" width="44" height="170" rx="8" opacity="0.45"/>
+    </g>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#84CC16"/>
+</svg>

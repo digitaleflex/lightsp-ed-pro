@@ -46,13 +46,15 @@ export function GuidedTour() {
   const [stepIdx, setStepIdx] = React.useState(0)
   const [spotlight, setSpotlight] = React.useState<{ top: number; left: number; width: number; height: number } | null>(null)
 
-  // Démarrer le tour pour les nouveaux visiteurs
+  // Démarrage UNIQUEMENT sur demande explicite (bouton « Visite guidée »,
+  // palette de commande). Plus d'auto-start : on ne confisque jamais le scroll.
   React.useEffect(() => {
-    const completed = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
-    if (!completed) {
-      const timer = setTimeout(() => setActive(true), 2500)
-      return () => clearTimeout(timer)
+    const start = () => {
+      setStepIdx(0)
+      setActive(true)
     }
+    window.addEventListener('lightspeed:start-tour', start)
+    return () => window.removeEventListener('lightspeed:start-tour', start)
   }, [])
 
   // Mesurer et suivre la position du spotlight

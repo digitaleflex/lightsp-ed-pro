@@ -31,7 +31,7 @@ const BENEFITS = [
 
 export function Benefits() {
   return (
-    <section className="relative overflow-hidden py-20 sm:py-28">
+    <section id="avantages" className="relative scroll-mt-20 overflow-hidden py-20 sm:py-28">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* En-tête */}
         <div className="mx-auto mb-14 max-w-2xl text-center">
@@ -83,13 +83,13 @@ export function Benefits() {
             <div className="text-center sm:text-left">
               <h3 className="text-2xl font-bold">Aucune modification de code</h3>
               <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-                Lightspeed ne nécessite l'ajout d'aucun script supplémentaire
+                Vélocita ne nécessite l'ajout d'aucun script supplémentaire
                 qui pourrait ralentir votre site. Configurez tout en quelques secondes.
               </p>
             </div>
             <Button size="lg" className="gap-2 shadow-lg shadow-primary/20" asChild>
               <Link href="#outil">
-                Obtenir Lightspeed
+                Obtenir Vélocita
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

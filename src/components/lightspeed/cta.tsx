@@ -27,12 +27,12 @@ export function CTA() {
               Prêt à accélérer votre site web ?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base text-white/90">
-              Rejoignez les milliers d'équipes qui utilisent Lightspeed pour
+              Rejoignez les milliers d'équipes qui utilisent Vélocita pour
               surveiller et optimiser leurs performances en continu.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button size="lg" variant="secondary" className="gap-2 shadow-xl" asChild>
-                <Link href="#outil">
+                <Link href="/outil">
                   <Gauge className="h-4 w-4" />
                   Tester mon site maintenant
                 </Link>
@@ -43,7 +43,7 @@ export function CTA() {
                 className="gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
                 asChild
               >
-                <Link href="#tarifs">
+                <Link href="/tarifs">
                   Voir les tarifs
                   <ArrowRight className="h-4 w-4" />
                 </Link>

@@ -30,8 +30,25 @@ import {
   Sun,
   Github,
   Globe,
+  BookOpen,
+  Compass,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { BLOG_POSTS } from '@/lib/blog'
+
+// Correspondance slug -> id d'ancre sur la home assemblée
+const SECTION_ANCHOR: Record<string, string> = {
+  outil: 'outil',
+  dashboard: 'dashboard',
+  classement: 'classement',
+  budget: 'budget',
+  tarifs: 'tarifs',
+  defis: 'achievements',
+  integrations: 'integrations',
+  journal: 'changelog',
+  faq: 'faq',
+  newsletter: 'newsletter',
+}
 
 interface CommandItemDef {
   icon: React.ElementType
@@ -68,23 +85,51 @@ export function CommandPalette() {
     }
   }, [open])
 
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const goSection = (slug: string) => {
     setOpen(false)
+    // Si on est déjà sur la home, scroll fluide vers l'ancre ;
+    // sinon, naviguer vers la page dédiée.
+    if (window.location.pathname === '/') {
+      document.getElementById(SECTION_ANCHOR[slug] ?? slug)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      router.push(`/${slug}`)
+    }
   }
 
   const items: CommandItemDef[] = [
     // Navigation
-    { icon: Gauge, label: 'Tester un site', hint: 'Analyser la vitesse d\'une URL', shortcut: '⌘K', action: () => scrollTo('outil'), group: 'Navigation' },
-    { icon: BarChart3, label: 'Tableau de bord', hint: 'Voir le monitoring', action: () => scrollTo('dashboard'), group: 'Navigation' },
-    { icon: Trophy, label: 'Classement des sites', hint: 'Sites les plus rapides', action: () => scrollTo('classement'), group: 'Navigation' },
-    { icon: Calculator, label: 'Calculateur de budget', hint: 'Définir vos objectifs', action: () => scrollTo('budget'), group: 'Navigation' },
-    { icon: Tag, label: 'Tarifs', hint: 'Voir les plans', action: () => scrollTo('tarifs'), group: 'Navigation' },
-    { icon: Award, label: 'Succès & badges', hint: 'Gamification', action: () => scrollTo('achievements'), group: 'Navigation' },
-    { icon: Plug, label: 'Intégrations', hint: 'Slack, GitHub, Vercel', action: () => scrollTo('integrations'), group: 'Navigation' },
-    { icon: GitCommit, label: 'Journal des évolutions', hint: 'Changelog', action: () => scrollTo('changelog'), group: 'Navigation' },
-    { icon: HelpCircle, label: 'FAQ', hint: 'Questions fréquentes', action: () => scrollTo('faq'), group: 'Navigation' },
-    { icon: Mail, label: 'Newsletter', hint: 'S\'abonner', action: () => scrollTo('newsletter'), group: 'Navigation' },
+    { icon: Gauge, label: 'Tester un site', hint: 'Analyser la vitesse d\'une URL', shortcut: '⌘K', action: () => goSection('outil'), group: 'Navigation' },
+    { icon: BarChart3, label: 'Tableau de bord', hint: 'Voir le monitoring', action: () => goSection('dashboard'), group: 'Navigation' },
+    { icon: Trophy, label: 'Classement des sites', hint: 'Sites les plus rapides', action: () => goSection('classement'), group: 'Navigation' },
+    { icon: Calculator, label: 'Calculateur de budget', hint: 'Définir vos objectifs', action: () => goSection('budget'), group: 'Navigation' },
+    { icon: Tag, label: 'Tarifs', hint: 'Voir les plans', action: () => goSection('tarifs'), group: 'Navigation' },
+    { icon: Award, label: 'Succès & badges', hint: 'Gamification', action: () => goSection('defis'), group: 'Navigation' },
+    { icon: Plug, label: 'Intégrations', hint: 'Slack, GitHub, Vercel', action: () => goSection('integrations'), group: 'Navigation' },
+    { icon: GitCommit, label: 'Journal des évolutions', hint: 'Changelog', action: () => goSection('journal'), group: 'Navigation' },
+    { icon: HelpCircle, label: 'FAQ', hint: 'Questions fréquentes', action: () => goSection('faq'), group: 'Navigation' },
+    { icon: Mail, label: 'Newsletter', hint: 'S\'abonner', action: () => goSection('newsletter'), group: 'Navigation' },
+
+    // Blog : index + chaque article
+    {
+      icon: BookOpen,
+      label: 'Blog — tous les guides',
+      hint: 'Core Web Vitals expliqués',
+      action: () => {
+        setOpen(false)
+        router.push('/blog')
+      },
+      group: 'Blog',
+    },
+    ...BLOG_POSTS.map((p) => ({
+      icon: BookOpen,
+      label: p.metric ? `${p.metric} — ${p.title.slice(0, 52)}${p.title.length > 52 ? '…' : ''}` : p.title,
+      hint: `${p.category} · ${p.readingTime} min`,
+      action: () => {
+        setOpen(false)
+        router.push(`/blog/${p.slug}`)
+      },
+      group: 'Blog' as const,
+    })),
 
     // Actions rapides
     {
@@ -107,6 +152,22 @@ export function CommandPalette() {
       },
       group: 'Actions rapides',
     },
+    {
+      icon: Compass,
+      label: 'Visite guidée',
+      hint: 'Tour des sections en 1 min',
+      action: () => {
+        setOpen(false)
+        const start = () => window.dispatchEvent(new Event('lightspeed:start-tour'))
+        if (window.location.pathname === '/') {
+          start()
+        } else {
+          router.push('/')
+          setTimeout(start, 900)
+        }
+      },
+      group: 'Actions rapides',
+    },
 
     // Liens externes
     {
@@ -118,9 +179,9 @@ export function CommandPalette() {
     },
     {
       icon: Globe,
-      label: 'lightspeed.run',
+      label: 'velocita.fr',
       hint: 'Site officiel',
-      action: () => window.open('https://lightspeed.run', '_blank'),
+      action: () => window.open('https://velocita.fr', '_blank'),
       group: 'Liens',
     },
   ]
@@ -133,7 +194,7 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Rechercher une section, une action…" />
+      <CommandInput placeholder="Rechercher une section, un guide, une action…" />
       <CommandList>
         <CommandEmpty>Aucun résultat trouvé.</CommandEmpty>
         {Object.entries(groups).map(([groupName, groupItems]) => (

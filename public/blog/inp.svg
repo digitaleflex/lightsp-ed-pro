@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#0E3B2E"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#10B981" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#34D399" font-weight="bold">LIGHTSPEED · INP</text>
+  <text x="76" y="268" font-family="Arial, Helvetica, sans-serif" font-size="150" font-weight="bold" fill="#ffffff">INP</text>
+  <text x="80" y="340" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#A7F3D0">Interaction to Next Paint</text>
+  <text x="80" y="392" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#34D399">Chaque clic instantané</text>
+  <rect x="80" y="424" width="280" height="64" rx="32" fill="#10B981"/>
+  <text x="220" y="467" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="bold" fill="#06281E" text-anchor="middle">≤ 200 ms</text>
+  <!-- Bouton + curseur + ondes -->
+  <g>
+    <circle cx="880" cy="400" r="150" fill="none" stroke="#10B981" stroke-width="5" opacity="0.35"/>
+    <circle cx="880" cy="400" r="110" fill="none" stroke="#10B981" stroke-width="6" stroke-dasharray="16 12" opacity="0.6"/>
+    <rect x="770" y="360" width="220" height="80" rx="40" fill="#10B981"/>
+    <circle cx="880" cy="400" r="16" fill="#06281E"/>
+    <polygon points="950,180 950,330 995,290 1022,348 1046,337 1019,280 1062,280" fill="#ffffff" stroke="#10B981" stroke-width="8" stroke-linejoin="round"/>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#10B981"/>
+</svg>
