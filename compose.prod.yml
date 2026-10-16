@@ -1,0 +1,161 @@
+# =============================================================================
+#  Vélocita — déploiement PRODUCTION (VPS derrière Traefik existant)
+#
+#  Convention : fichier `compose.prod.yml` (convention moderne `compose.*`).
+#  Tous les noms (services, conteneurs, réseau backend, volume, image, labels
+#  Traefik) sont préfixés `velocita-prod` pour éviter TOUT conflit avec le
+#  compose de dev (`docker-compose.yml`, projet `lightspeed-clone` : `db`,
+#  `studio`, `supabase_db_data`).
+#
+#  Prérequis :
+#    - un réseau Docker externe `proxy` déjà créé côté Traefik
+#      (docker network create proxy) — nom surchargeable via TRAEFIK_NETWORK
+#    - un fichier .env.prod (voir exemple.env.prod) — JAMAIS versionné
+#
+#  Lancement :
+#    docker compose --env-file .env.prod -f compose.prod.yml up -d --build
+#
+#  Aucun port n'est publié sur l'hôte : seul Traefik expose l'application.
+#  Aucun secret en dur : tout passe par ${VAR} + env_file.
+# =============================================================================
+
+# Projet Compose dédié : isolation totale vis-à-vis du projet dev
+# (`docker-compose.yml` dans le même dossier). Évite tout partage de namespace.
+name: velocita-prod
+
+services:
+  # ---------------------------------------------------------------------------
+  # Application Next.js (build Dockerfile.prod)
+  # ---------------------------------------------------------------------------
+  velocita-prod-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: velocita-prod-app:${APP_IMAGE_TAG:-prod}
+    container_name: velocita-prod-app
+    restart: unless-stopped
+
+    # Variables d'exécution (secrets inclus) — fichier non versionné
+    env_file:
+      - .env.prod
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      # Connexion DB interne (service `velocita-prod-db`), jamais exposée
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL requis dans .env.prod}
+      # URL publique dérivée du domaine paramétrable (utilisée par NextAuth / callbacks PSP)
+      NEXTAUTH_URL: "https://${APP_HOST:?APP_HOST requis dans .env.prod}"
+      # Moteur de mesure : auto | lighthouse | pagespeed
+      #   lighthouse => nécessite Chromium (présent dans l'image)
+      MEASURE_ENGINE: ${MEASURE_ENGINE:-auto}
+
+    depends_on:
+      velocita-prod-db:
+        condition: service_healthy
+
+    networks:
+      - proxy
+      - backend
+
+    # Un seul réplica : le scheduler de surveillance tourne en process.
+    deploy:
+      replicas: 1
+
+    healthcheck:
+      test:
+        - CMD
+        - bun
+        - -e
+        - "fetch('http://127.0.0.1:3000/api').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+    labels:
+      traefik.enable: "true"
+      # Traefik doit joindre l'app via le réseau proxy
+      traefik.docker.network: ${TRAEFIK_NETWORK:-proxy}
+
+      # --- Routeur HTTPS principal ---
+      traefik.http.routers.velocita-prod.rule: Host(`${APP_HOST}`)
+      traefik.http.routers.velocita-prod.entrypoints: websecure
+      traefik.http.routers.velocita-prod.tls: "true"
+      traefik.http.routers.velocita-prod.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.routers.velocita-prod.service: velocita-prod
+      traefik.http.services.velocita-prod.loadbalancer.server.port: "3000"
+
+      # --- Redirection HTTP -> HTTPS ---
+      traefik.http.routers.velocita-prod-http.rule: Host(`${APP_HOST}`)
+      traefik.http.routers.velocita-prod-http.entrypoints: web
+      traefik.http.routers.velocita-prod-http.middlewares: velocita-prod-redirect
+      traefik.http.middlewares.velocita-prod-redirect.redirectscheme.scheme: https
+      traefik.http.middlewares.velocita-prod-redirect.redirectscheme.permanent: "true"
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL (image supabase/postgres conservée pour compat avec le dev)
+  # Réseau backend uniquement — aucun port publié.
+  # ---------------------------------------------------------------------------
+  velocita-prod-db:
+    image: supabase/postgres:15.1.0.147
+    container_name: velocita-prod-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_PORT: "5432"
+    volumes:
+      # Volume PROD distinct des volumes dev (`supabase_db_data`) et legacy (`velocita_pgdata`)
+      - velocita-prod-pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Supabase Studio (admin DB) — optionnel, profil `admin` uniquement.
+  # Volontairement NON exposé via Traefik et sans port publié.
+  # Accès admin : port-forward SSH ou mapping temporaire (cf. DEPLOY_PROD.md).
+  # ---------------------------------------------------------------------------
+  velocita-prod-studio:
+    image: supabase/studio:latest
+    container_name: velocita-prod-studio
+    profiles: ["admin"]
+    restart: unless-stopped
+    environment:
+      STUDIO_DEFAULT_ORG: "Vélocita"
+      STUDIO_DEFAULT_PROJECT: "Velocita (prod)"
+      SUPABASE_URL: http://velocita-prod-db:5432
+      SUPABASE_PUBLIC_URL: https://${APP_HOST}
+    networks:
+      - backend
+    depends_on:
+      velocita-prod-db:
+        condition: service_healthy
+    # Décommenter TEMPORAIREMENT pour accès admin direct (sinon SSH tunnel) :
+    # ports:
+    #   - "127.0.0.1:54323:3000"
+
+networks:
+  # Réseau Traefik existant — référence EXTERNE, jamais créé par ce compose.
+  # NE PAS renommer : ce réseau appartient à Traefik.
+  proxy:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy}
+  # Réseau interne projet Vélocita (app <-> db), nom Docker explicite préfixé prod.
+  # Note : `internal: true` est volontairement ABSENT — l'app a besoin
+  # d'accès Internet sortant (mesures Lighthouse/PSI, APIs IA, PSP).
+  backend:
+    name: velocita-prod-backend
+    driver: bridge
+
+volumes:
+  # Volume PROD dédié (séparé du dev `supabase_db_data` et du legacy `velocita_pgdata`)
+  velocita-prod-pgdata:
+    name: velocita-prod-pgdata

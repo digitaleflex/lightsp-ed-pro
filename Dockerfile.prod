@@ -1,0 +1,89 @@
+# syntax=docker/dockerfile:1.7
+# =============================================================================
+#  Vélocita — image de PRODUCTION (Next.js standalone + Bun + Prisma)
+#  Cible : VPS derrière un Traefik existant (réseau `proxy` externe).
+#  Aucun secret n'est figé ici : tout arrive par variables d'environnement
+#  (env_file .env.prod / `docker compose --env-file`).
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1) DEPS — installation des dépendances (cache layer via bun.lock)
+# -----------------------------------------------------------------------------
+FROM oven/bun:1.3-slim AS deps
+WORKDIR /app
+# bun.lock fige l'arbre de dépendances (--frozen-lockfile = build reproductible)
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+# -----------------------------------------------------------------------------
+# 2) BUILDER — prisma generate + next build (output: standalone)
+# -----------------------------------------------------------------------------
+FROM oven/bun:1.3-slim AS builder
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Génère @prisma/client (aucun accès DB requis ici)
+RUN bun run db:generate
+
+# `next build` (output standalone) + copie de .next/static & public dans
+# .next/standalone (cf. script "build" de package.json).
+RUN bun run build
+
+# -----------------------------------------------------------------------------
+# 3) RUNNER — image finale « slim » + Chromium (moteur de mesure Lighthouse)
+# -----------------------------------------------------------------------------
+FROM oven/bun:1.3-slim AS runner
+
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0 \
+    BUN_INSTALL=/usr/local \
+    CHROME_PATH=/usr/bin/chromium \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
+# Chromium + libs système requises par chrome-launcher / Lighthouse,
+# openssl requis par Prisma, dumb-init comme PID 1 (gestion des signaux).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      openssl \
+      chromium \
+      fonts-liberation \
+      fonts-noto-color-emoji \
+      dumb-init \
+    && rm -rf /var/lib/apt/lists/*
+
+# CLI Prisma globale : utilisée par l'entrypoint pour `prisma migrate deploy`.
+# BUN_INSTALL=/usr/local => binaire exposé dans /usr/local/bin (accessible à tous).
+RUN bun add -g prisma@6.11.1
+
+# Utilisateur non-root
+RUN groupadd --system --gid 1001 nodejs \
+    && useradd --system --uid 1001 --gid nodejs --create-home nextjs
+
+WORKDIR /app
+
+# Serveur standalone (inclut le tracing des node_modules nécessaires)
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./.next/standalone
+# Statiques + assets publics (chemins attendus par le serveur standalone)
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/standalone/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./.next/standalone/public
+# Schéma + migrations Prisma (pour migrate deploy au démarrage)
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# Client Prisma généré — copie explicite de sûreté (au cas où le tracing Next
+# n'inclurait pas .prisma/client dans le standalone).
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma/client ./.next/standalone/node_modules/.prisma/client
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/client ./.next/standalone/node_modules/@prisma/client
+
+COPY --chown=nextjs:nodejs docker-entrypoint-prod.sh /usr/local/bin/docker-entrypoint-prod.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint-prod.sh
+
+EXPOSE 3000
+
+USER nextjs
+
+ENTRYPOINT ["dumb-init", "--", "/usr/local/bin/docker-entrypoint-prod.sh"]

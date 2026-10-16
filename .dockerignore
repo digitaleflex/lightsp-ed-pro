@@ -1,0 +1,21 @@
+# Contexte de build Docker — n'embarque que le nécessaire.
+node_modules
+.next
+.git
+.gitignore
+.venv
+download
+tool-results
+.backups
+.zscripts
+*.log
+dev.log
+server.log
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+Dockerfile*
+docker-compose*.yml
+*.md
