@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Check, Loader2, Sparkles, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { KkiapayCheckout } from './kkiapay-checkout'
 import {
   DEFAULT_PLANS,
   formatXof,
@@ -216,6 +217,15 @@ export function Pricing() {
                   )}
                 </Button>
 
+                {!isFree && (
+                  <KkiapayCheckout
+                    planSlug={p.slug}
+                    planName={p.name}
+                    interval={annual ? 'annual' : 'monthly'}
+                    className="mb-6"
+                  />
+                )}
+
                 <ul className="space-y-3">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-sm">
@@ -238,7 +248,8 @@ export function Pricing() {
         {/* Note */}
         <p className="mt-8 text-center text-xs text-muted-foreground">
           Tous les prix sont en FCFA (XOF), TTC. Paiement sécurisé par Mobile Money
-          (T-Money, Moov, MTN) ou carte bancaire via FedaPay.{' '}
+          (T-Money, Moov, MTN) ou carte bancaire via FedaPay. Alternative :
+          Mobile Money (MTN, Moov) et carte via KKiaPay.{' '}
           <a href={`mailto:${SALES_EMAIL}`} className="underline hover:text-foreground">
             Une facture entreprise ? Contacte-nous
           </a>

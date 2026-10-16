@@ -144,6 +144,72 @@ l'API FedaPay** — jamais cru sur parole au payload.
 
 ---
 
+## 5bis. KKiaPay (second provider)
+
+Second PSP, branché en parallèle de FedaPay (aucun fichier FedaPay modifié).
+Client REST natif : `src/lib/billing/kkiapay.ts` (+ `kkiapay-refund.ts`).
+
+### Flow
+
+```
+pricing.tsx (client)
+  │  POST /api/billing/kkiapay/checkout   ← planSlug + interval
+  ▼
+/api/billing/kkiapay/checkout ──► Payment(pending, provider=kkiapay)
+  │                                   │
+  │  renvoie { reference, publicKey, sandbox, callback }
+  ▼
+openKkiapayWidget({ amount, key, callback, sandbox })  ← SDK https://cdn.kkiapay.me/k.js
+  │  (onSuccess → transactionId)
+  ▼
+POST /api/billing/kkiapay/verify  ──► verify (transactions/status) ──► activateSubscription()
+  │                                                                    (idempotent, upsert/tenant)
+  ▼
+GET /api/billing/kkiapay/callback?reference=…&transactionId=…
+  (retour widget) ──► même logique de vérif ──► redirect /dashboard?payment=success|failed
+```
+
+**Règle d'or** : jamais confiance au statut ni au montant envoyés par le client.
+`verify` (et le callback) revérifient le statut via `transactions/status`, et le
+montant confirmé (`amount`) doit couvrir `Payment.amountXof`.
+
+### Contrat REST (vérifié depuis le SDK officiel)
+
+| Étape | Requête |
+|---|---|
+| Vérif | `POST {base}/api/v1/transactions/status` body `{ transactionId }` |
+| Refund | `POST {base}/api/v1/transactions/revert` body `{ transactionId }` |
+
+- `{base}` = `https://api-sandbox.kkiapay.me` (sandbox) ou `https://api.kkiapay.me` (live).
+- Headers : `Accept: application/json`, `X-API-KEY: <publicKey>`,
+  `X-PRIVATE-KEY: <privateKey>`, `X-SECRET-KEY: <secretKey>`.
+- Réponse verify : `{ performed_at, type, status, source, amount, fees, reason,
+  failureCode, income, transactionId, partnerId, client:{fullname,phone,email} }`.
+- Mapping statut (`mapKkiapayStatus`) : `SUCCESS → approved`,
+  `FAILED/DECLINED → declined`, `PENDING → pending`, `CANCELED → canceled`,
+  `EXPIRED → expired` — mêmes valeurs internes que FedaPay.
+
+### Variables d'env
+
+```bash
+KKIAPAY_MODE=sandbox        # sandbox | live — ne jamais mélanger
+KKIAPAY_PUBLIC_KEY=         # widget + X-API-KEY
+KKIAPAY_PRIVATE_KEY=        # X-PRIVATE-KEY (serveur)
+KKIAPAY_SECRET_KEY=         # X-SECRET-KEY (serveur)
+```
+
+`isKkiapayEnabled()` exige les **3** clés. Pas de nouvelle dépendance npm (fetch natif).
+
+### Routes
+
+| Route | Méthode | Rôle | Auth |
+|---|---|---|---|
+| `/api/billing/kkiapay/checkout` | POST | Crée le Payment → `{ reference, publicKey, … }` | session |
+| `/api/billing/kkiapay/verify` | POST | Revérifie (status) → active → `{ status, subscriptionActivated }` | session |
+| `/api/billing/kkiapay/callback` | GET | Retour widget → revérifie → redirect `/dashboard` | — |
+
+---
+
 ## 6. Notes d'implémentation
 
 - **Pas de SDK** : FedaPay est consommé en `fetch` natif (zéro dépendance,

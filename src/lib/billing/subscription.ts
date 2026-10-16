@@ -13,7 +13,7 @@ export interface ActivateInput {
   tenantId: string
   planId: string
   interval: BillingInterval
-  provider: 'fedapay'
+  provider: 'fedapay' | 'kkiapay'
   providerTransactionId?: string | null
   providerCustomerId?: string | null
 }
