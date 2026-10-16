@@ -4,9 +4,8 @@ out/
 dist/
 build/
 *.log
-.env
-.env.local
-.env.*.local
+# Secrets d'environnement (toutes variantes : .env, .env.local, .env.prod, …)
+.env*
 # Config SDK Z.ai (le vrai fichier contient la clé) — le template .z-ai-config.example est versionné
 .z-ai-config
 db/*.db
@@ -23,3 +22,15 @@ coverage/
 Thumbs.db
 download/
 tool-results/
+# Artefacts d'exécution locaux — les scripts versionnés de .zscripts/ (.sh/.py) restent suivis
+.zscripts/*.pid
+.zscripts/*.log
+*.pid
+__pycache__/
+*.pyc
+.backups/
+# Généré par Next.js (dev/build) — ne pas versionner
+next-env.d.ts
+# Cache incrémental TypeScript
+tsconfig.tsbuildinfo
+
