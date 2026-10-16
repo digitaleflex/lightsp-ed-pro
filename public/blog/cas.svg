@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#07322E"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#14B8A6" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#14B8A6" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#5EEAD4" font-weight="bold">LIGHTSPEED · ÉTUDE DE CAS</text>
+  <text x="76" y="252" font-family="Arial, Helvetica, sans-serif" font-size="96" font-weight="bold" fill="#ffffff">4,1 s → 1,9 s</text>
+  <text x="80" y="322" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#99F6E4">LCP fiche produit</text>
+  <text x="80" y="374" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#5EEAD4">Méthode et ROI chiffré</text>
+  <rect x="80" y="406" width="330" height="64" rx="32" fill="#14B8A6"/>
+  <text x="245" y="449" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="bold" fill="#042926" text-anchor="middle">+31 % conversion</text>
+  <!-- Barres avant/après -->
+  <g>
+    <text x="730" y="200" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" fill="#F87171">AVANT</text>
+    <rect x="730" y="220" width="260" height="54" rx="12" fill="#F87171" opacity="0.8"/>
+    <text x="1005" y="258" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" fill="#F87171">4,1 s</text>
+    <text x="730" y="330" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" fill="#5EEAD4">APRÈS</text>
+    <rect x="730" y="350" width="120" height="54" rx="12" fill="#14B8A6"/>
+    <text x="865" y="388" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" fill="#5EEAD4">1,9 s</text>
+    <polyline points="730,460 820,430 900,440 1010,370" fill="none" stroke="#5EEAD4" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <polygon points="1010,370 972,372 992,404" fill="#5EEAD4"/>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#14B8A6"/>
+</svg>

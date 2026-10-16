@@ -1,6 +1,9 @@
 // Registre central du Blog Vélocita — Core Web Vitals.
 // Chaque article = 1 slug -> /blog/[slug], avec contenu structuré complet.
 
+import { BLOG_POSTS_P2 } from './blog-p2'
+import { BLOG_POSTS_P3 } from './blog-p3'
+
 export interface BlogAuthor {
   name: string
   role: string
@@ -50,9 +53,11 @@ export interface BlogPost {
   sections: BlogSection[]
   checklist: string[]
   faq: { q: string; a: string }[]
+  /** Sources externes d'autorité (docs Google, MDN…) affichées en bas d'article. */
+  sources?: { label: string; url: string }[]
 }
 
-export const BLOG_POSTS: BlogPost[] = [
+const BLOG_POSTS_V1: BlogPost[] = [
   {
     slug: 'guide-complet-core-web-vitals-2026',
     title: 'Guide complet des Core Web Vitals en 2026 : seuils, mesures et priorités',
@@ -69,7 +74,9 @@ export const BLOG_POSTS: BlogPost[] = [
       'lcp-largest-contentful-paint-optimisation',
       'cls-cumulative-layout-shift-zero',
       'inp-interaction-to-next-paint-reactivite',
-    ],
+    
+      'wordpress-core-web-vitals-sans-tout-casser',
+      'loaf-long-animation-frames',],
     intro: [
       'Les Core Web Vitals sont le sous-ensemble de métriques que Google utilise pour juger de l’expérience utilisateur réelle : vitesse de chargement, réactivité et stabilité visuelle. Depuis 2024, le trio officiel est LCP (chargement), INP (réactivité) et CLS (stabilité).',
       'Ce guide pilier vous donne l’essentiel : définitions simples, seuils Google à viser (au 75e percentile des visites réelles), outils de mesure fiables et ordre de priorité pour optimiser sans vous disperser.',
@@ -173,7 +180,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'guide-complet-core-web-vitals-2026',
       'fcp-first-contentful-paint-rapidite',
       'ttfb-time-to-first-byte-serveur',
-    ],
+    
+      'images-avif-srcset-lazy-loading',
+      'wordpress-core-web-vitals-sans-tout-casser',
+      'fetchpriority-preload-preconnect',],
     intro: [
       'Le LCP mesure le moment où le plus grand élément visible (image hero, bannière, gros titre) devient visible. C’est le meilleur proxy de « la page a-t-elle chargé ? » selon l’utilisateur.',
       'Seuil Google : bon à 2,5 secondes ou moins, au 75e percentile mobile. En pratique, 4 causes expliquent 90 % des mauvais LCP : serveur lent, image hero trop lourde ou tardive, CSS/JS bloquants, polices web lentes.',
@@ -259,7 +269,9 @@ export const BLOG_POSTS: BlogPost[] = [
       'guide-complet-core-web-vitals-2026',
       'lcp-largest-contentful-paint-optimisation',
       'core-web-vitals-seo-conversions-optimisation',
-    ],
+    
+      'images-avif-srcset-lazy-loading',
+      'polices-web-performances',],
     intro: [
       'Le CLS quantifie les décalages inattendus de mise en page pendant le chargement et l’utilisation : une image sans dimensions qui pousse le texte, une pub qui s’insère en haut, une police qui change la hauteur des lignes.',
       'Seuil Google : bon à 0,1 ou moins. Bonne nouvelle : c’est la métrique la plus rapide à corriger, souvent en une journée, avec des règles simples et durables.',
@@ -340,7 +352,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'tbt-total-blocking-time-javascript',
       'guide-complet-core-web-vitals-2026',
       'core-web-vitals-seo-conversions-optimisation',
-    ],
+    
+      'rum-web-vitals-20-minutes',
+      'inp-attribution-debug',
+      'fid-vers-inp-migration',],
     intro: [
       'INP mesure la réactivité : le délai entre une interaction (clic, tap, frappe) et la prochaine image affichée. Google retient la pire interaction (en pratique proche du 98e percentile) sur la visite — une seule interaction lente suffit à plomber la métrique.',
       'Depuis mars 2024, INP remplace FID comme Core Web Vital. Seuil : 200 ms ou moins. Les coupables habituels : longues tâches JS (> 50 ms), hydratation lourde, listeners synchrones coûteux, frameworks qui re-rendent trop.',
@@ -426,7 +441,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'lcp-largest-contentful-paint-optimisation',
       'ttfb-time-to-first-byte-serveur',
       'guide-complet-core-web-vitals-2026',
-    ],
+    
+      'speculation-rules-navigation-instantanee',
+      'fetchpriority-preload-preconnect',
+      'polices-web-performances',],
     intro: [
       'Le FCP mesure le moment où le premier contenu (texte, image, SVG, canvas) est peint. Ce n’est pas un Core Web Vital officiel, mais c’est le meilleur indicateur de « quelque chose se passe » — et un prérequis à un bon LCP.',
       'Seuil : moins de 1,8 s en bon. Un FCP lent vient presque toujours de trois choses : serveur lent, CSS bloquant, polices bloquantes.',
@@ -555,7 +573,9 @@ export const BLOG_POSTS: BlogPost[] = [
       'inp-interaction-to-next-paint-reactivite',
       'fcp-first-contentful-paint-rapidite',
       'core-web-vitals-seo-conversions-optimisation',
-    ],
+    
+      'nextjs-core-web-vitals-app-router',
+      'loaf-long-animation-frames',],
     intro: [
       'Le TBT mesure, en labo, le temps total où le thread principal est bloqué (> 50 ms par tâche) entre FCP et fin de chargement. C’est le meilleur proxy labo de la réactivité (INP) : un TBT élevé prédit un INP élevé.',
       'Seuil : moins de 200 ms en bon. Les causes : bundle JS trop gros, hydratation massive, scripts tiers, polyfills inutiles, parsing de gros JSON synchrone.',
@@ -618,7 +638,9 @@ export const BLOG_POSTS: BlogPost[] = [
       'guide-complet-core-web-vitals-2026',
       'ttfb-time-to-first-byte-serveur',
       'core-web-vitals-seo-conversions-optimisation',
-    ],
+    
+      'rum-web-vitals-20-minutes',
+      'bfcache-cache-arriere',],
     intro: [
       'Le malentendu n°1 : confondre score labo (Lighthouse, test unique, environnement simulé) et expérience terrain (CrUX, 75e percentile de vrais Chrome sur 28 jours). Google classe sur le terrain, pas sur votre test du matin.',
       'Bonne méthode : terrain pour décider (CrUX via PageSpeed/Search Console/RUM), labo pour diagnostiquer et itérer (Lighthouse/WebPageTest à profil constant).',
@@ -689,7 +711,10 @@ export const BLOG_POSTS: BlogPost[] = [
       'guide-complet-core-web-vitals-2026',
       'inp-interaction-to-next-paint-reactivite',
       'lcp-largest-contentful-paint-optimisation',
-    ],
+    
+      'etude-cas-lcp-fiche-produit',
+      'wordpress-core-web-vitals-sans-tout-casser',
+      'speed-index-tti-utiles',],
     intro: [
       'La vitesse n’est pas un gadget technique : chaque seconde de LCP en moins augmente conversions, pages vues et satisfaction — et sécurise le signal SEO « expérience de page ». Le raisonnement gagnant : prioriser par ROI (trafic × valeur × effort).',
       'Cet article donne la méthode pro : quantifier l’enjeu, fixer des budgets, exécuter par sprints courts, et verrouiller avec du monitoring pour ne jamais régresser.',
@@ -758,6 +783,8 @@ export const BLOG_POSTS: BlogPost[] = [
     ],
   },
 ]
+
+export const BLOG_POSTS: BlogPost[] = [...BLOG_POSTS_V1, ...BLOG_POSTS_P2, ...BLOG_POSTS_P3]
 
 export const BLOG_BY_SLUG = new Map(BLOG_POSTS.map((p) => [p.slug, p]))
 

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#471032"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#EC4899" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#EC4899" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#F9A8D4" font-weight="bold">LIGHTSPEED · IMAGES</text>
+  <text x="76" y="252" font-family="Arial, Helvetica, sans-serif" font-size="104" font-weight="bold" fill="#ffffff">AVIF</text>
+  <text x="76" y="348" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="bold" fill="#F9A8D4">srcset · lazy</text>
+  <text x="80" y="402" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#F9A8D4">-50 % de poids, LCP réglé</text>
+  <rect x="80" y="430" width="300" height="60" rx="30" fill="#EC4899"/>
+  <text x="230" y="471" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold" fill="#3B0A22" text-anchor="middle">Bon format · bonne taille</text>
+  <!-- Image compressée -->
+  <g>
+    <rect x="710" y="170" width="300" height="230" rx="24" fill="none" stroke="#EC4899" stroke-width="12"/>
+    <circle cx="945" cy="235" r="26" fill="none" stroke="#F9A8D4" stroke-width="10"/>
+    <polyline points="710,400 810,300 870,360 910,325 1010,400" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <g stroke="#F9A8D4" stroke-width="10" stroke-linecap="round" fill="none">
+      <line x1="660" y1="250" x2="610" y2="250"/>
+      <polyline points="628,232 608,250 628,268"/>
+      <line x1="1060" y1="250" x2="1110" y2="250"/>
+      <polyline points="1092,232 1112,250 1092,268"/>
+    </g>
+    <text x="860" y="470" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="bold" fill="#F9A8D4" text-anchor="middle">1,8 Mo → 140 Ko</text>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#EC4899"/>
+</svg>

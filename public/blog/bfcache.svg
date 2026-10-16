@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#07322E"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#2DD4BF" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#2DD4BF" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#99F6E4" font-weight="bold">LIGHTSPEED · NAVIGATION</text>
+  <text x="76" y="252" font-family="Arial, Helvetica, sans-serif" font-size="104" font-weight="bold" fill="#ffffff">bfcache</text>
+  <text x="76" y="348" font-family="Arial, Helvetica, sans-serif" font-size="60" font-weight="bold" fill="#99F6E4">Retour éclair</text>
+  <text x="80" y="402" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#99F6E4">1 nav. sur 5 : gratuite</text>
+  <rect x="80" y="430" width="280" height="60" rx="30" fill="#2DD4BF"/>
+  <text x="220" y="471" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold" fill="#042926" text-anchor="middle">taux > 70 %</text>
+  <g fill="none" stroke-linecap="round">
+    <path d="M980,250 A110,110 0 1 0 990,360" stroke="#2DD4BF" stroke-width="22"/>
+    <polygon points="990,200 990,260 935,235" fill="#2DD4BF" stroke="none"/>
+    <rect x="700" y="400" width="330" height="60" rx="30" fill="#2DD4BF"/>
+    <text x="865" y="441" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold" fill="#042926" text-anchor="middle">retour instantané</text>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#2DD4BF"/>
+</svg>

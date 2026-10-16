@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#083B46"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#0891B2" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#0891B2" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#67E8F9" font-weight="bold">LIGHTSPEED · CHARGEMENT</text>
+  <text x="76" y="252" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="bold" fill="#ffffff">Priorités</text>
+  <text x="76" y="348" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="bold" fill="#67E8F9">preload · hints</text>
+  <text x="80" y="402" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#67E8F9">Le bon ordre, au bon moment</text>
+  <rect x="80" y="430" width="300" height="60" rx="30" fill="#0891B2"/>
+  <text x="230" y="471" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold" fill="#06333C" text-anchor="middle">LCP en Highest</text>
+  <g>
+    <rect x="700" y="180" width="320" height="70" rx="16" fill="none" stroke="#0891B2" stroke-width="10"/>
+    <text x="860" y="227" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="bold" fill="#22D3EE" text-anchor="middle">HERO · HIGH</text>
+    <rect x="700" y="270" width="320" height="70" rx="16" fill="none" stroke="#3B4670" stroke-width="10"/>
+    <text x="860" y="317" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#94A3B8" text-anchor="middle">reste · low</text>
+    <g stroke="#22D3EE" stroke-width="12" stroke-linecap="round" fill="none">
+      <line x1="760" y1="370" x2="760" y2="440"/>
+      <polyline points="738,418 760,442 782,418"/>
+      <line x1="860" y1="370" x2="860" y2="440"/>
+      <polyline points="838,418 860,442 882,418"/>
+      <line x1="960" y1="370" x2="960" y2="440"/>
+      <polyline points="938,418 960,442 982,418"/>
+    </g>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#0891B2"/>
+</svg>

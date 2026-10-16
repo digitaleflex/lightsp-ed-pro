@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0C1226"/>
+      <stop offset="1" stop-color="#413208"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.35" r="0.65">
+      <stop offset="0" stop-color="#EAB308" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#EAB308" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <text x="80" y="118" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="6" fill="#FDE047" font-weight="bold">LIGHTSPEED · MESURE</text>
+  <text x="76" y="268" font-family="Arial, Helvetica, sans-serif" font-size="130" font-weight="bold" fill="#ffffff">RUM</text>
+  <text x="80" y="340" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#FEF08A">Real User Monitoring</text>
+  <text x="80" y="392" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#FDE047">Vos données terrain en 20 min</text>
+  <rect x="80" y="424" width="260" height="60" rx="30" fill="#EAB308"/>
+  <text x="210" y="465" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold" fill="#332700" text-anchor="middle">p75 par page</text>
+  <!-- Signal live -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="680" y="180" width="360" height="270" rx="26" stroke="#3B4670" stroke-width="10"/>
+    <polyline points="710,360 770,360 800,280 840,400 880,320 910,345 940,345 970,250 1010,250" stroke="#EAB308" stroke-width="12"/>
+    <circle cx="1010" cy="250" r="14" fill="#EAB308" stroke="none"/>
+    <circle cx="730" cy="230" r="12" fill="#22C55E" stroke="none"/>
+    <text x="754" y="240" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" fill="#22C55E">LIVE</text>
+  </g>
+  <rect x="0" y="614" width="1200" height="16" fill="#EAB308"/>
+</svg>
