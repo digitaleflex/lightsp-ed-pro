@@ -12,7 +12,7 @@ import { BLOG_BY_SLUG, BLOG_POSTS, BLOG_AUTHOR, getRelatedPosts, getPrevNextPost
 import { canonical } from '@/lib/site'
 import {
   ArrowLeft, ArrowRight, Clock, CalendarDays, CheckCircle2,
-  Lightbulb, ListChecks, ListOrdered, HelpCircle, Home, BookOpen, Gauge,
+  Lightbulb, ListChecks, ListOrdered, HelpCircle, Home, BookOpen, Gauge, ExternalLink,
 } from 'lucide-react'
 
 export function generateStaticParams() {
@@ -200,6 +200,14 @@ export default async function BlogArticle({ params }: { params: Promise<{ slug: 
                   <span className="group-hover:underline">Questions fréquentes</span>
                 </a>
               </li>
+              {post.sources && post.sources.length > 0 && (
+                <li>
+                  <a href="#sources" className="group flex items-baseline gap-2.5 rounded-lg px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+                    <span className="font-mono text-xs font-bold text-primary">{String(post.sections.length + 3).padStart(2, '0')}</span>
+                    <span className="group-hover:underline">Sources et références</span>
+                  </a>
+                </li>
+              )}
             </ol>
           </nav>
 
@@ -270,6 +278,36 @@ export default async function BlogArticle({ params }: { params: Promise<{ slug: 
               ))}
             </div>
           </div>
+
+          {/* Sources externes */}
+          {post.sources && post.sources.length > 0 && (
+            <div id="sources" className="mt-10 scroll-mt-24 rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8">
+              <h2 className="mb-1 flex items-center gap-2 text-lg font-bold">
+                <BookOpen className="h-5 w-5 text-primary" /> Sources et références
+              </h2>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Documentation officielle et références vérifiées utilisées pour cet article.
+              </p>
+              <ul className="space-y-2">
+                {post.sources.map((src) => (
+                  <li key={src.url}>
+                    <a
+                      href={src.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 text-sm transition-colors hover:border-primary/40"
+                    >
+                      <span className="font-medium group-hover:text-primary">{src.label}</span>
+                      <span className="flex shrink-0 items-center gap-1.5 font-mono text-xs text-muted-foreground">
+                        {new URL(src.url).hostname.replace(/^www\./, '')}
+                        <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* CTA */}
           <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-6 text-center sm:flex-row sm:text-left">
