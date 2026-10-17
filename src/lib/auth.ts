@@ -36,7 +36,7 @@ function slugify(input: string): string {
  * - Tenant name = nom fourni ou email.
  * - Idempotent : appelable plusieurs fois sans créer de doublons.
  */
-async function ensureUserTenant(input: {
+export async function ensureUserTenant(input: {
   email: string;
   name?: string | null;
   googleSub?: string;
@@ -134,6 +134,12 @@ export const authOptions: NextAuthOptions = {
       if (user?.email && !token.email) {
         token.email = user.email;
       }
+      if (user?.name && !token.name) {
+        token.name = user.name;
+      }
+      if ((user?.image || (user as any)?.picture) && !token.image) {
+        token.image = (user?.image || (user as any)?.picture) as string;
+      }
 
       // Provisioning paresseux : si on a un email mais pas de tenantId,
       // on cherche en DB puis on crée si nécessaire.
@@ -175,6 +181,12 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
+      }
+      if (session.user && token.name) {
+        session.user.name = token.name as string;
+      }
+      if (session.user && token.image) {
+        session.user.image = token.image as string;
       }
       const tenantId = (token as { tenantId?: string }).tenantId;
       if (tenantId) {

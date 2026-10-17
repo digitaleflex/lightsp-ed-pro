@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 import { db, createSpeedTest } from '@/lib/db'
 import { measureUrl } from '@/lib/measure'
 import { upsertIndexedSite } from '@/lib/sites'
@@ -29,8 +31,8 @@ export async function POST(req: NextRequest) {
     const measurement = await measureUrl(url, device)
     const { source, measuredAt, note, ...result } = measurement
 
-    // TODO : remplacer par session auth (Better Auth / NextAuth)
-    const tenantId = body?.tenantId ?? req.headers.get('x-tenant-id') ?? 'default-tenant'
+    const session = await getServerSession(authOptions)
+    const tenantId = (session as { tenantId?: string })?.tenantId ?? 'default-tenant'
 
     // INDEXATION AUTOMATIQUE : tout site analysé est ajouté à la base (dédoublonné
     // sur l'URL canonique : www/casse/slash) puis re-mesuré périodiquement.

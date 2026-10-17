@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Caveat, Caveat_Brush, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -7,12 +7,24 @@ import { Providers } from "@/components/providers";
 import { SITE_URL } from "@/lib/site";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const caveat = Caveat({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const caveatBrush = Caveat_Brush({
+  variable: "--font-display-brush",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -55,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${geistSans.variable} ${caveat.variable} ${caveatBrush.variable} ${jetBrainsMono.variable} antialiased bg-background text-foreground font-sans`}
       >
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <Providers>{children}</Providers>

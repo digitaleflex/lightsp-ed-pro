@@ -16,6 +16,13 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CardSkeletonGrid, LoadError } from './loading-states'
+import dynamic from 'next/dynamic';
+
+// Pattern code-splitting : chargement différé du composant lourd
+const HeavyChartLazy = dynamic(
+  () => import('./heavy-chart'),
+  { loading: () => <span className="text-xs text-slate-400">Chargement graphique…</span>, ssr: false }
+);
 
 interface Industry {
   category: string

@@ -18,9 +18,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     redirect("/connexion?callbackUrl=/dashboard");
   }
 
+  const userProp = session.user ? {
+    name: session.user.name ?? session.user.email ?? null,
+    email: session.user.email ?? '',
+    image: session.user.image ?? null,
+  } : null;
+
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <DashboardSidebar />
+      <DashboardSidebar user={userProp} />
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardMobileHeader />
         <div className="min-w-0 flex-1">{children}</div>

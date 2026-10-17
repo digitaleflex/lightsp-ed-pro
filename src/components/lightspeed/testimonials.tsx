@@ -36,7 +36,7 @@ const TESTIMONIALS = [
   },
 ] as const
 
-const LOGOS = ['Vercel', 'Linear', 'Notion', 'Stripe', 'Figma', 'Cloudflare']
+const LOGOS = ['Mesurés : Vercel', 'Linear', 'Notion', 'Stripe', 'Figma', 'Cloudflare']
 
 export function Testimonials() {
   return (
@@ -49,11 +49,12 @@ export function Testimonials() {
             Témoignages
           </p>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Ils ont accéléré avec Vélocita
+            Sites analysés avec Vélocita
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Plus de 4 500 équipes font confiance à Vélocita pour surveiller
-            et optimiser leurs performances web.
+            Mesures Lighthouse réelles effectuées sur ces sites populaires
+            (pas des témoignages clients). Chaque score est calculé directement
+            sur la base de données de production.
           </p>
         </div>
 

@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
   // Paquets Node natifs/serveur : ne pas bundler (Lighthouse local)
   serverExternalPackages: ["lighthouse", "chrome-launcher"],
   typescript: {
-    ignoreBuildErrors: true,
+    // plus aucun `ignoreBuildErrors` : le type-check bloque le build si régression
+    ignoreBuildErrors: false,
   },
   reactStrictMode: false,
   // Masquer l'indicateur de développement Next.js (badge "N")

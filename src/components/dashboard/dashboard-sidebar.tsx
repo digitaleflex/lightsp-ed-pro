@@ -48,7 +48,7 @@ const PRIMARY_NAV: NavItem[] = [
 ];
 
 const COMING_SOON_NAV: NavItem[] = [
-  { label: "Profil", href: "#", icon: User, state: "soon", description: "Modifier mes infos" },
+  { label: "Profil", href: "/dashboard/profil", icon: User, state: "active", description: "Modifier mes infos" },
   { label: "Notifications", href: "#", icon: Bell, state: "soon", description: "Alertes Slack / e-mail" },
   { label: "Paramètres", href: "#", icon: Settings, state: "soon", description: "Tenant & équipe" },
 ];
@@ -78,7 +78,11 @@ function IconTooltip({ label, children }: { label: string; children: React.React
   );
 }
 
-export function DashboardSidebar() {
+export function DashboardSidebar({
+  user: userProp,
+}: {
+  user?: { name: string | null; email: string; image: string | null } | null;
+}) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
@@ -116,7 +120,17 @@ export function DashboardSidebar() {
     return false;
   }
 
-  const user = session?.user;
+  const userFromProp = userProp ? {
+    name: userProp.name,
+    email: userProp.email,
+    image: userProp.image,
+  } : null;
+  const sessionUser = session?.user ? {
+    name: session.user.name ?? session.user.email ?? null,
+    email: session.user.email ?? '',
+    image: session.user.image ?? null,
+  } : null;
+  const user = userFromProp ?? sessionUser;
   const displayName = user?.name?.trim() ||
     (user?.email ? user.email.split("@")[0] : "Mon compte");
   const initial = displayName.charAt(0).toUpperCase();

@@ -95,7 +95,7 @@ export default async function SectionPage({
       </a>
       <Navbar />
       <main id="contenu" className="flex-1">
-        <SectionShell meta={meta} anchorHref={`/#${meta.anchor}`}>
+        <SectionShell meta={meta}>
           <Component />
         </SectionShell>
       </main>

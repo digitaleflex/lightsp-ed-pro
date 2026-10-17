@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { Navbar } from '@/components/lightspeed/navbar'
 import { Footer } from '@/components/lightspeed/footer'
-import { InternalLinks } from '@/components/lightspeed/internal-links'
+
 import { ReadingProgress } from '@/components/lightspeed/reading-progress'
 import { BlogShare } from '@/components/lightspeed/blog-share'
 import { BlogNewsletter } from '@/components/lightspeed/blog-newsletter'
@@ -399,7 +399,7 @@ export default async function BlogArticle({ params }: { params: Promise<{ slug: 
           </div>
         </div>
 
-        <InternalLinks title="Explorer aussi" />
+
       </main>
       <Footer />
     </div>

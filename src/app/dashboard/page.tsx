@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { authOptions, ensureUserTenant } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
 
@@ -54,12 +54,33 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     redirect("/connexion?callbackUrl=/dashboard");
   }
 
-  const tenantId = session.tenantId;
+  let tenantId = session.tenantId;
   const params = await searchParams;
   const q = (params.q ?? "").trim();
   const sort = parseSort(params.sort);
   const page = Math.max(1, Number(params.page ?? "1") || 1);
 
+  const sessionEmail = session?.user?.email ?? null;
+  if (!tenantId && sessionEmail) {
+    const userRow = await db.user.findUnique({
+      where: { email: sessionEmail },
+      select: { tenantId: true },
+    });
+    if (userRow?.tenantId) {
+      tenantId = userRow.tenantId;
+      (session as { tenantId?: string }).tenantId = tenantId;
+    } else {
+      try {
+        const { tenantId: newTenantId } = await ensureUserTenant({
+          email: sessionEmail, name: session?.user?.name ?? null,
+        });
+        tenantId = newTenantId;
+        (session as { tenantId?: string }).tenantId = tenantId;
+      } catch {
+        // ignorer
+      }
+    }
+  }
   if (!tenantId) {
     return (
       <main className="container mx-auto max-w-4xl px-4 py-16">

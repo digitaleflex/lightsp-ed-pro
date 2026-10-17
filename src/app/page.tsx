@@ -24,7 +24,6 @@ import { FAQ } from '@/components/lightspeed/faq'
 import { Newsletter } from '@/components/lightspeed/newsletter'
 import { Changelog } from '@/components/lightspeed/changelog'
 import { CTA } from '@/components/lightspeed/cta'
-import { InternalLinks } from '@/components/lightspeed/internal-links'
 import { Footer } from '@/components/lightspeed/footer'
 import { CookieConsent } from '@/components/lightspeed/cookie-consent'
 import { CommandPalette } from '@/components/lightspeed/command-palette'
@@ -81,8 +80,6 @@ export default function Home() {
         <FAQ />
         <Changelog />
         <CTA />
-        {/* Bloc statique interne : chaque ancre a sa page dédiée */}
-        <InternalLinks />
       </main>
       <Footer />
       <ShortcutHint />

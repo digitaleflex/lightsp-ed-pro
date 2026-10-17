@@ -204,11 +204,3 @@ export const NAV_SECTIONS = [
   'avis',
   'faq',
 ] as const
-
-export function getRelatedSections(slug: string, count = 6): SectionMeta[] {
-  const current = SECTION_BY_SLUG.get(slug)
-  if (!current) return SECTIONS.slice(0, count)
-  const sameGroup = SECTIONS.filter((s) => s.slug !== slug && s.group === current.group)
-  const others = SECTIONS.filter((s) => s.slug !== slug && s.group !== current.group)
-  return [...sameGroup, ...others].slice(0, count)
-}

@@ -82,7 +82,6 @@ export const BLOG_POSTS_P2: BlogPost[] = [
           'Documentez la stack (thème, plugins autorisés, réglages cache) et interdisez l’installation de plugins sans test de performance. Re-mesurez mensuellement les 4 templates et surveillez la Search Console : une mise à jour de thème ou de plugin suffit à casser un CLS.',
           'Avec un monitoring continu (Vélocita, par exemple), chaque mise en prod est comparée à la précédente : vous voyez la régression avant vos visiteurs et avant Google.',
         ],
-        checklist: [],
         bullets: [
           'Liste blanche de plugins + procédure de test avant chaque mise à jour.',
           'Re-mesure mensuelle des templates + alertes sur régression.',

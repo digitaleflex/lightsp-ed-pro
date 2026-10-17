@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navbar } from '@/components/lightspeed/navbar'
 import { Footer } from '@/components/lightspeed/footer'
-import { InternalLinks } from '@/components/lightspeed/internal-links'
+
 import { BLOG_POSTS, BLOG_CATEGORIES, BLOG_AUTHOR } from '@/lib/blog'
 import { BlogIndexClient } from '@/components/lightspeed/blog-index-client'
 import { canonical } from '@/lib/site'
@@ -157,7 +157,7 @@ export default function BlogIndex() {
           </div>
         </div>
 
-        <InternalLinks title="Explorer aussi" />
+
       </main>
       <Footer />
     </div>
